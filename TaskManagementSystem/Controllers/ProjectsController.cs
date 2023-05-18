@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using TaskManagementSystem.Areas.Identity.Data;
 using TaskManagementSystem.Models;
 using TaskManagementSystem.ViewModels;
 
@@ -19,11 +20,15 @@ namespace TaskManagementSystem.Controllers
             _context = context;
         }
 
+
         public IActionResult GetUsersSelectList()
         {
             var users = _context.Users.Select(m => new SelectListItem {Text = m.Username }).ToList();
             return Json(users);
         }
+
+        
+
 
 
         // GET: Projects
