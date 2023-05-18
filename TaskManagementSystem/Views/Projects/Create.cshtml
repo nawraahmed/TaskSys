@@ -45,11 +45,16 @@
                         asp-items="@Model.Users.Select(m=> new SelectListItem {Text = m.Username})"></select>
             </div>
 
-            @*<div class="form-group">
-            <label asp-for="Users.Username" class="control-label"></label>
-            <select asp-for="Users.Username" class="form-control"
-            asp-items="@Model.Users.Select(m=> new SelectListItem {Text = m.Username, Value = m.Username})"></select>
-            </div>*@
+            <div class="form-group">
+                <label for="memberCount" class="control-label">Number of Members:</label>
+                <input type="number" id="memberCount" class="form-control" min="0" />
+
+            </div>
+
+            <div id="membersContainer"></div>
+
+
+            
 
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
@@ -61,3 +66,36 @@
 <div>
     <a asp-action="Index">Back to List</a>
 </div>
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('#memberCount').on('change', function () {
+                var count = $(this).val();
+                generateMemberDropdowns(count);
+            });
+        });
+
+        function generateMemberDropdowns(count) {
+            var container = $('#membersContainer');
+            container.empty();
+
+            for (var i = 1; i <= count; i++) {
+                (function () {  // IIFE to capture the current select element
+                    var dropdown = $('<div class="form-group">');
+                    dropdown.append($('<label class="control-label">').text('Member ' + i + ':'));
+
+                    var select = $('<select class="form-control">');
+                    dropdown.append(select);
+                    container.append(dropdown);
+
+                    $.get('@Url.Action("GetUsersSelectList", "Projects")', function (data) {
+                        $(data).each(function () {
+                            select.append($('<option>').attr('value', this.value).text(this.text));
+                        });
+                    });
+                })();
+            }
+        }
+    </script>
+}
+

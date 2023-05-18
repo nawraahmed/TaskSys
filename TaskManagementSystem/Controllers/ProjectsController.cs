@@ -19,6 +19,13 @@ namespace TaskManagementSystem.Controllers
             _context = context;
         }
 
+        public IActionResult GetUsersSelectList()
+        {
+            var users = _context.Users.Select(m => new SelectListItem {Text = m.Username }).ToList();
+            return Json(users);
+        }
+
+
         // GET: Projects
         public async Task<IActionResult> Index()
         {
@@ -84,8 +91,15 @@ namespace TaskManagementSystem.Controllers
             {
                 return NotFound();
             }
+
+            var pviewModel = new ProjectsUsersVM
+            {
+                Project = project,
+                Users = _context.Users
+            };
+
             ViewData["CreatedByUsername"] = new SelectList(_context.Users, "Username", "Username", project.CreatedByUsername);
-            return View(project);
+            return View(pviewModel);
         }
 
         // POST: Projects/Edit/5
@@ -93,36 +107,38 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProjectId,Name,Description,Deadline,Budget,CreatedByUsername,Status")] Project project)
+        public async Task<IActionResult> Edit(int id, ProjectsUsersVM editProject)
         {
-            if (id != project.ProjectId)
+            if (id != editProject.Project.ProjectId)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(project);
+
+                _context.Update(editProject.Project);
                     await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProjectExists(project.ProjectId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CreatedByUsername"] = new SelectList(_context.Users, "Username", "Username", project.CreatedByUsername);
-            return View(project);
+                    TempData["CreateSuccess"] = "Project Updated Successfully";
+                    return RedirectToAction("Index");
+
+
         }
+            else
+            {
+                var pviewModel = new ProjectsUsersVM
+                {
+                    Project = editProject.Project,
+                    Users = _context.Users
+                };
+
+               
+
+                return View(pviewModel);
+            }
+
+
+}
 
         // GET: Projects/Delete/5
         public async Task<IActionResult> Delete(int? id)
