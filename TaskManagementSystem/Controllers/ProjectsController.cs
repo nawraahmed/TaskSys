@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TaskManagementSystem.Models;
+using TaskManagementSystem.ViewModels;
 
 namespace TaskManagementSystem.Controllers
 {
@@ -47,8 +48,13 @@ namespace TaskManagementSystem.Controllers
         // GET: Projects/Create
         public IActionResult Create()
         {
-            ViewData["CreatedByUsername"] = new SelectList(_context.Users, "Username", "Username");
-            return View();
+
+            var pviewModel = new ProjectsUsersVM
+            {
+                Project = new(),
+                Users = _context.Users
+            };
+            return View(pviewModel);
         }
 
         // POST: Projects/Create
@@ -56,16 +62,13 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProjectId,Name,Description,Deadline,Budget,CreatedByUsername,Status")] Project project)
+        public async Task<IActionResult> Create( Project project)
         {
-            if (ModelState.IsValid)
-            {
+            
                 _context.Add(project);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CreatedByUsername"] = new SelectList(_context.Users, "Username", "Username", project.CreatedByUsername);
-            return View(project);
+                return RedirectToAction("Index");
+            
         }
 
         // GET: Projects/Edit/5
