@@ -9,5 +9,6 @@ namespace TaskManagementSystem.Areas.Identity.Data;
 // Add profile data for application users by adding properties to the IdentityUsers class
 public class IdentityUsers : IdentityUser
 {
+   
 }
 
