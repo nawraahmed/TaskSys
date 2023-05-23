@@ -37,6 +37,11 @@ namespace TaskManagementSystem.Controllers
             var taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation);
             return View(await taskAllocationDBContext.ToListAsync());
         }
+        public async Task<IActionResult> MyProjectsIndex()
+        {
+            var taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation).Where(x=>x.CreatedByUsername==User.Identity.Name);
+            return View(await taskAllocationDBContext.ToListAsync());
+        }
 
         // GET: Projects/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -114,10 +119,10 @@ namespace TaskManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ProjectsUsersVM editProject)
         {
-            if (id != editProject.Project.ProjectId)
-            {
-                return NotFound();
-            }
+            //if (id != editProject.Project.ProjectId)
+            //{
+            //    return NotFound();
+            //}
 
             if (ModelState.IsValid)
             {
