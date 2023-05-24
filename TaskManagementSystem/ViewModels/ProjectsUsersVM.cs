@@ -6,7 +6,7 @@ namespace TaskManagementSystem.ViewModels
     {
         public Project Project { get; set; }
         public IEnumerable<User> Users { get; set; }
-        public List<String> SelectedMembers { get; set; }
+        public IEnumerable<Project> Projects { get; set; }
 
       
 

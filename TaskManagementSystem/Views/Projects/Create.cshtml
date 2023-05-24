@@ -42,23 +42,24 @@
                 <input asp-for="Project.Status" class="form-control" readonly style="background-color: lightgray; color:orangered" value="Pending" />
                 <span asp-validation-for="Project.Status" class="text-danger"></span>
             </div>
-
             <div class="form-group">
                 <label asp-for="Project.CreatedByUsername" class="control-label"></label>
-                <input asp-for="Project.CreatedByUsername" class="form-control" style="background-color: lightgray;" value="@UserManager.GetUserName(User)" />
+                <input asp-for="Project.CreatedByUsername" class="form-control" readonly style="background-color: lightgray;" value="@UserManager.GetUserName(User)" />
             </div>
+
+
+
 
             <div class="form-group">
-                <label asp-for="SelectedMembers" class="control-label">Selected Members:</label>
-                <input asp-for="SelectedMembers" class="form-control" />
+                <label for="memberCount" class="control-label">Number of Members:</label>
+                <input type="number" id="memberCount" class="form-control" min="0" />
+
             </div>
 
+            <div id="membersContainer"></div>
 
 
             
-
-
-
 
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
@@ -72,4 +73,49 @@
 </div>
 
 
+
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('#memberCount').on('change', function () {
+                var count = $(this).val();
+                generateMemberDropdowns(count);
+            });
+        });
+
+        var selectedValues = [];
+
+        function generateMemberDropdowns(count) {
+            var container = $('#membersContainer');
+            container.empty();
+
+            for (var i = 1; i <= count; i++) {
+                (function (index) {
+                    var dropdown = $('<div class="form-group">');
+                    dropdown.append($('<label class="control-label">').text('Member ' + i + ':'));
+
+                    var select = $('<select class="form-control">');
+                    dropdown.append(select);
+                    container.append(dropdown);
+
+                    $.get('@Url.Action("GetUsersSelectList", "Projects")', function (data) {
+                        var options = '';
+                        $(data).each(function () {
+                            var disabled = selectedValues.includes(this.value) ? 'disabled' : '';
+                            options += '<option value="' + this.value + '" ' + disabled + '>' + this.text + '</option>';
+                        });
+                        select.html(options);
+
+                        select.on('change', function () {
+                            var selectedValue = $(this).val();
+                            selectedValues.push(selectedValue);
+                            $(this).find('option[value="' + selectedValue + '"]').attr('disabled', 'disabled');
+                        });
+                    });
+                })(i);
+            }
+        }
+    </script>
 }
+
