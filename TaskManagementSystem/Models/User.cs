@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using TaskManagementSystem.Areas.Identity.Data;
 
 namespace TaskManagementSystem.Models
 {
@@ -40,5 +41,10 @@ namespace TaskManagementSystem.Models
         public virtual ICollection<TaskComment> TaskComments { get; set; }
         [InverseProperty("AssignedToUsernameNavigation")]
         public virtual ICollection<Task> Tasks { get; set; }
+
+        public static implicit operator User(IdentityUsers v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
