@@ -22,22 +22,28 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
+                            @if(User.Identity.IsAuthenticated)
+            {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" asp-controller="Projects" asp-action="Index">Projects</a>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" asp-controller="Projects" asp-action="Index">My Projects</a>
-                                <a class="dropdown-item" href="#">All projects</a>
+                                <a class="dropdown-item" asp-controller="Projects" asp-action="MyProjectsIndex">My Projects</a>
+                                <a class="dropdown-item" asp-controller="Projects" asp-action="Index">All projects</a>
 
                             </div>
                         </li>
+                        
 
-
+                        
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Logs" asp-action="Index">Adminstartion</a>
                         </li>
+                     
+             
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Profile</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Notifications" asp-action="Index">Notification</a>
                         </li>
+            }
                     </ul>
                 </div>
             </div>

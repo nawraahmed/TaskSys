@@ -1,21 +1,16 @@
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using TaskManagementSystem.Areas.Identity.Data;
-using TaskManagementSystem.Models;
-using TaskManagementSystem.ViewModels;
 
 namespace TaskManagementSystem.Controllers
 {
     public class ProjectsController : Controller
     {
         private readonly TaskAllocationDBContext _context;
-        
+
 
         public ProjectsController(TaskAllocationDBContext context)
         {
@@ -38,7 +33,17 @@ namespace TaskManagementSystem.Controllers
         // GET: Projects
         public async Task<IActionResult> Index()
         {
-            var taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation);
+            //check if either the logged in user is a project member or the project is created by him!
+            var taskAllocationDBContext = _context.Projects
+     .Include(p => p.CreatedByUsernameNavigation)
+     .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
+
+            return View(await taskAllocationDBContext.ToListAsync());
+        }
+        public async Task<IActionResult> MyProjectsIndex()
+        {
+            //display the projects that it is created by this user
+            var taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation).Where(x=>x.CreatedByUsername==User.Identity.Name);
             return View(await taskAllocationDBContext.ToListAsync());
         }
 
@@ -182,10 +187,10 @@ namespace TaskManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ProjectsUsersVM editProject)
         {
-            if (id != editProject.Project.ProjectId)
-            {
-                return NotFound();
-            }
+            //if (id != editProject.Project.ProjectId)
+            //{
+            //    return NotFound();
+            //}
 
             if (ModelState.IsValid)
             {

@@ -1,0 +1,63 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.Project>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>My Projects </h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Project</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+               Project Name
+            </th>
+            <th>
+                Project Description
+            </th>
+            <th>
+                Project Deadline
+            </th>
+            <th>
+                Project Status
+            </th>
+            <th>
+                Project Manager
+            </th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Deadline)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreatedByUsernameNavigation.Username)
+                </td>
+                <td>
+                    <a asp-controller="Tasks" asp-action="Index" asp-route-id="@item.ProjectId">View Tasks</a> |
+                    <a asp-controller="#" asp-action="Index" asp-route-id="@item.ProjectId">Dashbaord</a> |
+                    <a asp-action="Details" asp-route-id="@item.ProjectId">Project Details</a> |
+                    <a asp-action="Edit" asp-route-id="@item.ProjectId">Edit Project</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ProjectId">Delete Project</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
