@@ -40,5 +40,7 @@ namespace TaskManagementSystem.Models
         public virtual ICollection<TaskComment> TaskComments { get; set; }
         [InverseProperty("AssignedToUsernameNavigation")]
         public virtual ICollection<Task> Tasks { get; set; }
+
+
     }
 }
