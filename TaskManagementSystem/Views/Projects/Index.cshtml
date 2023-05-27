@@ -51,7 +51,7 @@
                     @Html.DisplayFor(modelItem => item.CreatedByUsernameNavigation.Username)
                 </td>
                 <td>
-                    <a asp-controller="Tasks" asp-action="Index" asp-route-id="@item.ProjectId">View Tasks</a> |
+                    <a asp-controller="Tasks" asp-action="Index" asp-route-projectId="@item.ProjectId">View Tasks</a> |
                     <a asp-controller="#" asp-action="Index" asp-route-id="@item.ProjectId">Dashbaord</a> |
                     <a asp-action="Details" asp-route-id="@item.ProjectId">Project Details</a> |
                     <a asp-action="Edit" asp-route-id="@item.ProjectId">Edit Project</a> |

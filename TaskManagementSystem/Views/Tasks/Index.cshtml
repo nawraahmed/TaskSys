@@ -1,72 +1,76 @@
-﻿@model IEnumerable<TaskManagementSystem.Models.Task>
-
+﻿@model TaskManagementSystem.ViewModels.TasksVM
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Index</h1>
+<h1>Tasks</h1>
 
+
+<h3>These are the Tasks for the Project: @Model.Project.ProjectId</h3>
+<h3>Project Deadline: @Model.Project.Deadline</h3>
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" asp-route-projectId="@Model.Project.ProjectId" class="btn btn-primary">Create New Task</a>
 </p>
 <table class="table">
     <thead>
         <tr>
+
             <th>
-                @Html.DisplayNameFor(model => model.Name)
+                @Html.DisplayNameFor(model => model.Task.Name)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Description)
+                @Html.DisplayNameFor(model => model.Task.Description)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Status)
+                @Html.DisplayNameFor(model => model.Task.Status)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Deadline)
+                @Html.DisplayNameFor(model => model.Task.Deadline)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AssignedToUsernameNavigation)
+                @Html.DisplayNameFor(model => model.Task.AssignedToUsernameNavigation)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Project)
+                @Html.DisplayNameFor(model => model.Task.Project)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TaskDocumentNavigation)
+                @Html.DisplayNameFor(model => model.Task.TaskDocumentNavigation)
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Deadline)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AssignedToUsernameNavigation.Username)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Project.ProjectId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TaskDocumentNavigation.DocumentId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.TaskId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.TaskId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.TaskId">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model.Project.Tasks)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Deadline)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AssignedToUsernameNavigation.Username)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Project.ProjectId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TaskDocumentNavigation.DocumentId)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.TaskId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.TaskId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.TaskId">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

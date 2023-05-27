@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TaskManagementSystem.Models;
+using TaskManagementSystem.ViewModels;
 
 namespace TaskManagementSystem.Controllers
 {
@@ -19,10 +20,18 @@ namespace TaskManagementSystem.Controllers
         }
 
         // GET: Tasks
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? projectId)
         {
-            var taskAllocationDBContext = _context.Tasks.Include(t => t.AssignedToUsernameNavigation).Include(t => t.Project).Include(t => t.TaskDocumentNavigation);
-            return View(await taskAllocationDBContext.ToListAsync());
+
+            TasksVM tasksVM = new TasksVM();
+            tasksVM.Project = await _context.Projects.Where(x => x.ProjectId == projectId).FirstOrDefaultAsync();
+            tasksVM.Project.Tasks = await _context.Tasks.Include(t => t.AssignedToUsernameNavigation).Where(p => p.ProjectId == projectId)
+                    .Include(t => t.Project).Include(t => t.TaskDocumentNavigation)
+                 .ToListAsync();
+            return View(tasksVM);
+
+
+
         }
 
         // GET: Tasks/Details/5
@@ -47,12 +56,20 @@ namespace TaskManagementSystem.Controllers
         }
 
         // GET: Tasks/Create
-        public IActionResult Create()
+        public IActionResult Create(int projectId)
         {
-            ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username");
-            ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectId");
-            ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId");
-            return View();
+            //ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username");
+            //ViewData["ProjectId"] = projectId; //new SelectList(_context.Projects, "ProjectId", "ProjectId");
+            //ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId");
+            //return View();
+            var tasksViewModel = new TasksVM
+            {
+                Task = new(),
+                Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId),
+                ProjectMembers = _context.ProjectMembers
+            };
+
+            return View(tasksViewModel);
         }
 
         // POST: Tasks/Create
@@ -60,18 +77,30 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TaskId,Name,Description,Status,Deadline,ProjectId,AssignedToUsername,TaskDocument")] Models.Task task)
+        public async Task<IActionResult> Create(TasksVM tasksVM)
         {
+            Models.Task task = tasksVM.Task;
+            // Retrieve the ProjectId 
+            int projectId = task.ProjectId;
+            task.Project = _context.Projects.FirstOrDefault(x => x.ProjectId == projectId);
+            // Populate the Project property using the projectId
+            tasksVM.Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId);
+            task.AssignedToUsernameNavigation = (User)_context.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
+            task.AssignedToUsername = User.Identity.Name;
+          //  task.Project =_context.Projects.FirstOrDefault(x => x.ProjectId==pro)
+            ModelState.Clear();
+            TryValidateModel(task);
+           
             if (ModelState.IsValid)
             {
                 _context.Add(task);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index),new { projectId = task.ProjectId });
             }
-            ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username", task.AssignedToUsername);
-            ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectId", task.ProjectId);
-            ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId", task.TaskDocument);
-            return View(task);
+            //ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username", task.AssignedToUsername);
+            //ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectId", task.ProjectId);
+            //ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId", task.TaskDocument);
+            return View(tasksVM);
         }
 
         // GET: Tasks/Edit/5
@@ -98,13 +127,17 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("TaskId,Name,Description,Status,Deadline,ProjectId,AssignedToUsername,TaskDocument")] Models.Task task)
+        public async Task<IActionResult> Edit( [Bind("TaskId,Name,Description,Status,Deadline,ProjectId,AssignedToUsername,TaskDocument")] Models.Task task)
         {
-            if (id != task.TaskId)
-            {
-                return NotFound();
-            }
-
+            // Retrieve the ProjectId 
+            int projectId = task.ProjectId;
+            // Populate the Project property using the projectId
+            task.Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId);
+            task.AssignedToUsernameNavigation = (User)_context.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
+            task.AssignedToUsername = User.Identity.Name;
+            //  task.Project =_context.Projects.FirstOrDefault(x => x.ProjectId==pro)
+            ModelState.Clear();
+            TryValidateModel(task);
             if (ModelState.IsValid)
             {
                 try
@@ -123,10 +156,10 @@ namespace TaskManagementSystem.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index),new { projectId = task.ProjectId });
             }
             ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username", task.AssignedToUsername);
-            ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectId", task.ProjectId);
+            ViewData["ProjectId"] = task.ProjectId;
             ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId", task.TaskDocument);
             return View(task);
         }
@@ -168,12 +201,15 @@ namespace TaskManagementSystem.Controllers
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { projectId = task.ProjectId });
         }
 
         private bool TaskExists(int id)
         {
             return (_context.Tasks?.Any(e => e.TaskId == id)).GetValueOrDefault();
         }
+
+
+
     }
 }

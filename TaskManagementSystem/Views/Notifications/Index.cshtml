@@ -5,6 +5,41 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<h1>Notifications</h1>
+
+@*<p>
+    <a asp-action="Create">Create New</a>
+</p>*@
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@item.Message</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">@item.Type</h6>
+                    <p class="card-text">@item.Status</p>
+                    <p class="card-text">Username: @item.UsernameNavigation.Username</p>
+                    <a asp-action="Edit" asp-route-id="@item.NotificationId" class="btn btn-primary">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.NotificationId" class="btn btn-secondary">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.NotificationId" class="btn btn-danger">Delete</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+
+
+@*@model IEnumerable<TaskManagementSystem.Models.Notification>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
 <h1>Index</h1>
 
 <p>
@@ -52,3 +87,5 @@
 }
     </tbody>
 </table>
+*@
+

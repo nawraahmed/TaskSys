@@ -38,7 +38,11 @@ namespace TaskManagementSystem.Controllers
         // GET: Projects
         public async Task<IActionResult> Index()
         {
-            var taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation);
+            //check if either the logged in user is a project member or the project is created by him!
+            var taskAllocationDBContext = _context.Projects
+     .Include(p => p.CreatedByUsernameNavigation)
+     .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
+
             return View(await taskAllocationDBContext.ToListAsync());
         }
 
@@ -48,6 +52,7 @@ namespace TaskManagementSystem.Controllers
             var taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation).Where(x => x.CreatedByUsername == User.Identity.Name);
             return View(await taskAllocationDBContext.ToListAsync());
         }
+
 
 
         // GET: Projects/Details/5
@@ -263,5 +268,7 @@ namespace TaskManagementSystem.Controllers
         {
             return (_context.Projects?.Any(e => e.ProjectId == id)).GetValueOrDefault();
         }
+
     }
+
 }
