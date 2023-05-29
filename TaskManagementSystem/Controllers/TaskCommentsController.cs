@@ -19,9 +19,9 @@ namespace TaskManagementSystem.Controllers
         }
 
         // GET: TaskComments
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? taskid)
         {
-            var taskAllocationDBContext = _context.TaskComments.Include(t => t.Task).Include(t => t.UsernameNavigation);
+            var taskAllocationDBContext = _context.TaskComments.Where(t=>t.TaskId==taskid).Include(t => t.Task).Include(t => t.UsernameNavigation);
             return View(await taskAllocationDBContext.ToListAsync());
         }
 
@@ -48,7 +48,7 @@ namespace TaskManagementSystem.Controllers
         // GET: TaskComments/Create
         public IActionResult Create(int taskid)
         {
-            ViewData["TaskId"] = _context.TaskComments.FirstOrDefault(x => x.TaskId == taskid);   
+            ViewData["TaskId"] = taskid; 
             ViewData["Username"] = new SelectList(_context.Users, "Username", "Username");
             return View();
         }
@@ -58,15 +58,22 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CommentId,Comment,TaskId,Username")] TaskComment taskComment)
+        public async Task<IActionResult> Create([Bind("Comment,TaskId,Username")] TaskComment taskComment)
         {
+            int taskid = taskComment.TaskId;
+            // Models.Task task = taskComment.Task;
+            taskComment.Task = _context.Tasks.FirstOrDefault(x => x.TaskId == taskid);
+            taskComment.Task.Project = _context.Projects.FirstOrDefault(x => x.ProjectId == taskComment.Task.ProjectId);
+            taskComment.UsernameNavigation = (User)_context.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
+            ModelState.Clear();
+            TryValidateModel(taskComment);
             if (ModelState.IsValid)
             {
                 _context.Add(taskComment);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new {taskid = taskComment.TaskId});
             }
-            ViewData["TaskId"] = new SelectList(_context.Tasks, "TaskId", "TaskId", taskComment.TaskId);
+            ViewData["TaskId"] = taskComment.TaskId;
             ViewData["Username"] = new SelectList(_context.Users, "Username", "Username", taskComment.Username);
             return View(taskComment);
         }
