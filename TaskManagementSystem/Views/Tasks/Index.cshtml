@@ -9,7 +9,21 @@
 
 <h3>These are the Tasks for the Project: @Model.Project.ProjectId</h3>
 <h3>Project Deadline: @Model.Project.Deadline</h3>
+     <div class="col-8">
+            <form asp-controller="Tasks" asp-action="Index" method="get">
+                Task Name:
+                <input type="text" name="SearchString" value="@Context.Request.Query["SearchString"].ToString()" />
+           
+                <input type="submit" value="Search" class="btn btn-secondary mx-2" />
+        <a asp-controller="Tasks" asp-action="Index" class="btn btn-outline-danger">
+                    Clear
+                </a>
+            </form>
+
+
+        </div>
 <p>
+     
     <a asp-action="Create" asp-route-projectId="@Model.Project.ProjectId" class="btn btn-primary">Create New Task</a>
 </p>
 <table class="table">
