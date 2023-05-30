@@ -101,13 +101,15 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CommentId,Comment,TaskId,Username")] TaskComment taskComment)
+        public async Task<IActionResult> Edit( [Bind("CommentId,Comment,TaskId,Username")] TaskComment taskComment)
         {
-            if (id != taskComment.CommentId)
-            {
-                return NotFound();
-            }
-
+            int taskid = taskComment.TaskId;
+            // Models.Task task = taskComment.Task;
+            taskComment.Task = _context.Tasks.FirstOrDefault(x => x.TaskId == taskid);
+            taskComment.Task.Project = _context.Projects.FirstOrDefault(x => x.ProjectId == taskComment.Task.ProjectId);
+            taskComment.UsernameNavigation = (User)_context.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
+            ModelState.Clear();
+            TryValidateModel(taskComment);
             if (ModelState.IsValid)
             {
                 try
@@ -126,9 +128,9 @@ namespace TaskManagementSystem.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { taskid = taskComment.TaskId });
             }
-            ViewData["TaskId"] = new SelectList(_context.Tasks, "TaskId", "TaskId", taskComment.TaskId);
+            ViewData["TaskId"] = taskComment.TaskId;
             ViewData["Username"] = new SelectList(_context.Users, "Username", "Username", taskComment.Username);
             return View(taskComment);
         }
@@ -169,7 +171,7 @@ namespace TaskManagementSystem.Controllers
             }
             
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { taskid = taskComment.TaskId });
         }
 
         private bool TaskCommentExists(int id)
