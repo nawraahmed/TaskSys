@@ -28,6 +28,7 @@ namespace TaskManagementSystem.Areas.Identity.Pages.Account
         private readonly TaskAllocationDBContext _context;
         private readonly SignInManager<IdentityUsers> _signInManager;
         private readonly UserManager<IdentityUsers> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IUserStore<IdentityUsers> _userStore;
         private readonly IUserEmailStore<IdentityUsers> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
@@ -36,12 +37,14 @@ namespace TaskManagementSystem.Areas.Identity.Pages.Account
         public string Username { get; set; }
         public RegisterModel(
             UserManager<IdentityUsers> userManager,
+               RoleManager<IdentityRole> roleManager,
             IUserStore<IdentityUsers> userStore,
             SignInManager<IdentityUsers> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
             TaskAllocationDBContext context)
         {
+            _roleManager= roleManager;
             _userManager = userManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
@@ -113,6 +116,9 @@ namespace TaskManagementSystem.Areas.Identity.Pages.Account
 
         public async System.Threading.Tasks.Task OnGetAsync(string returnUrl = null)
         {
+            await ContextSeed.SeedRolesAsync(_userManager, _roleManager);
+            await ContextSeed.SeedAdminAsync(_userManager, _roleManager);
+
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }

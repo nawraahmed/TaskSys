@@ -33,7 +33,19 @@ namespace TaskManagementSystem.Controllers
 
 
         }
+        public async Task<IActionResult> MyTasks(int? projectId)
+        {
 
+            TasksVM tasksVM = new TasksVM();
+            tasksVM.Project = await _context.Projects.Where(x => x.ProjectId == projectId).FirstOrDefaultAsync();
+            tasksVM.Project.Tasks = await _context.Tasks.Include(t => t.AssignedToUsernameNavigation).Where(p => p.ProjectId == projectId).Where(x=>x.AssignedToUsername==User.Identity.Name)
+                    .Include(t => t.Project).Include(t => t.TaskDocumentNavigation)
+                 .ToListAsync();
+            return View(tasksVM);
+
+
+
+        }
         // GET: Tasks/Details/5
         public async Task<IActionResult> Details(int? id)
         {
