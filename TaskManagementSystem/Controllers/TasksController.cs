@@ -78,7 +78,7 @@ namespace TaskManagementSystem.Controllers
             {
                 Task = new(),
                 Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId),
-                ProjectMembers = _context.ProjectMembers
+                ProjectMembers = _context.ProjectMembers.Where(p=>p.ProjectId== projectId)
             };
 
             return View(tasksViewModel);
@@ -91,27 +91,57 @@ namespace TaskManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TasksVM tasksVM)
         {
+            // Extract the task from the view model
             Models.Task task = tasksVM.Task;
+
             // Retrieve the ProjectId 
             int projectId = task.ProjectId;
+
+            // Retrieve the project using the projectId
             task.Project = _context.Projects.FirstOrDefault(x => x.ProjectId == projectId);
-            // Populate the Project property using the projectId
+
+            // Populate the Project property of the view model using the projectId
             tasksVM.Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId);
-            task.AssignedToUsernameNavigation = (User)_context.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
-            task.AssignedToUsername = User.Identity.Name;
-          //  task.Project =_context.Projects.FirstOrDefault(x => x.ProjectId==pro)
+
+
+            // Retrieve the selected project member's username
+            tasksVM.SelectedProjectMemberUsername = task.AssignedToUsername;
+
+            // Set the task's AssignedToUsername to the selected project member's username
+            task.AssignedToUsernameNavigation = _context.Users.FirstOrDefault(x => x.Username == tasksVM.SelectedProjectMemberUsername);
+
+            // Set the task's AssignedToUsername to the selected project member's username
+            task.AssignedToUsername = tasksVM.SelectedProjectMemberUsername;
+
+            // Retrieve the currently logged-in user
+            var currentUser = await _context.Users.FirstOrDefaultAsync(x => x.Username == User.Identity.Name);
+
+            if (currentUser != null)
+            {
+                // Set the CreatedByUsernameNavigation property of the project to the current user
+                task.Project.CreatedByUsernameNavigation = currentUser;
+            }
+            //clear the modelstate and validate it
             ModelState.Clear();
             TryValidateModel(task);
            
             if (ModelState.IsValid)
             {
+                // Add the task to the context and save changes
                 _context.Add(task);
                 await _context.SaveChangesAsync();
+                // Redirect to the index action of the tasks controller, passing the projectId as a route value
                 return RedirectToAction(nameof(Index),new { projectId = task.ProjectId });
             }
+            // Retrieve the project members for the selected project
+            tasksVM.ProjectMembers = _context.ProjectMembers.Where(p => p.ProjectId == projectId);
+
+
             //ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username", task.AssignedToUsername);
             //ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectId", task.ProjectId);
             //ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId", task.TaskDocument);
+
+            // Return the view with the updated view model
             return View(tasksVM);
         }
 
@@ -128,7 +158,11 @@ namespace TaskManagementSystem.Controllers
             {
                 return NotFound();
             }
-            ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username", task.AssignedToUsername);
+
+            var projectId = task.ProjectId;
+         
+
+            ViewData["AssignedToUsername"] = new SelectList(_context.ProjectMembers.Where(x=>x.ProjectId==projectId), "Username", "Username", task.AssignedToUsername);
             ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectId", task.ProjectId);
             ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId", task.TaskDocument);
             return View(task);
@@ -143,17 +177,33 @@ namespace TaskManagementSystem.Controllers
         {
             // Retrieve the ProjectId 
             int projectId = task.ProjectId;
+
+
+
             // Populate the Project property using the projectId
             task.Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId);
-            task.AssignedToUsernameNavigation = (User)_context.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
-            task.AssignedToUsername = User.Identity.Name;
-            //  task.Project =_context.Projects.FirstOrDefault(x => x.ProjectId==pro)
+
+
+            // Retrieve the user entity based on the AssignedToUsername of the task
+            task.AssignedToUsernameNavigation = _context.Users.FirstOrDefault(x => x.Username == task.AssignedToUsername);
+
+
+            // Retrieve the currently logged-in user
+            var currentUser = await _context.Users.FirstOrDefaultAsync(x => x.Username == User.Identity.Name);
+
+            if (currentUser != null)
+            {
+                // Set the CreatedByUsernameNavigation property of the project to the current user
+                task.Project.CreatedByUsernameNavigation = currentUser;
+            }
+
             ModelState.Clear();
             TryValidateModel(task);
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Update the task in the context and save changes
                     _context.Update(task);
                     await _context.SaveChangesAsync();
                 }
@@ -168,11 +218,18 @@ namespace TaskManagementSystem.Controllers
                         throw;
                     }
                 }
+                // Redirect to the index action of the tasks controller, passing the projectId as a route value
                 return RedirectToAction(nameof(Index),new { projectId = task.ProjectId });
             }
-            ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username", task.AssignedToUsername);
+
+
+            // Set the ViewData for the AssignedToUsername, ProjectId, and TaskDocument fields
+            ViewData["AssignedToUsername"] = new SelectList(_context.ProjectMembers.Where(x => x.ProjectId == projectId), "Username", "Username", task.AssignedToUsername);
             ViewData["ProjectId"] = task.ProjectId;
             ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId", task.TaskDocument);
+
+
+            // Return the view with the updated task
             return View(task);
         }
 
