@@ -49,8 +49,22 @@
             </div>
 
             <div class="form-group">
-                <label asp-for="SelectedMembers" class="control-label">Selected Members:</label>
-                <input asp-for="SelectedMembers" class="form-control" />
+                <label class="control-label">Selected Members:</label>
+
+                @foreach (var user in Model.Users)
+                {
+                    var isChecked = user.Username == UserManager.GetUserName(User) ? "flexCheckChecked" : "";
+                    <div class="form-check">
+
+                        <input class="form-check-input" for="flexCheckChecked" type="checkbox" id="@("user_" + user.Username) isChecked" value="@user.Username" name="SelectedMembers" @(user.Username == @UserManager.GetUserName(User) ? "checked" : "") />
+                        <label class="form-check-label" for="@("user_" + user.Username)">@user.Username</label>
+                        </div>
+                }
+                
+
+                
+            
+                
             </div>
 
 
