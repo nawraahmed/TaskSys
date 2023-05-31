@@ -20,32 +20,36 @@ namespace TaskManagementSystem.Controllers
         }
 
         // GET: Tasks
-        public async Task<IActionResult> Index(int? projectId)
+        public async Task<IActionResult> Index(int projectId, string tab = "alltasks")
         {
-
             TasksVM tasksVM = new TasksVM();
-            tasksVM.Project = await _context.Projects.Where(x => x.ProjectId == projectId).FirstOrDefaultAsync();
-            tasksVM.Project.Tasks = await _context.Tasks.Include(t => t.AssignedToUsernameNavigation).Where(p => p.ProjectId == projectId)
-                    .Include(t => t.Project).Include(t => t.TaskDocumentNavigation)
-                 .ToListAsync();
+
+            tasksVM.Tab = tab;
+
+            tasksVM.Project = await _context.Projects.FirstOrDefaultAsync(x => x.ProjectId == projectId);
+
+            if (tab == "mytasks")
+            {
+                tasksVM.Project.Tasks = await _context.Tasks
+                    .Include(t => t.AssignedToUsernameNavigation)
+                    .Where(p => p.ProjectId == projectId && p.AssignedToUsername == User.Identity.Name) // Filter by assigned user
+                    .Include(t => t.Project)
+                    .Include(t => t.TaskDocumentNavigation)
+                    .ToListAsync();
+            }
+            else if (tab == "alltasks")
+            {
+                tasksVM.Project.Tasks = await _context.Tasks
+                    .Include(t => t.AssignedToUsernameNavigation)
+                    .Where(p => p.ProjectId == projectId)
+                    .Include(t => t.Project)
+                    .Include(t => t.TaskDocumentNavigation)
+                    .ToListAsync();
+            }
+
             return View(tasksVM);
-
-
-
         }
-        public async Task<IActionResult> MyTasks(int? projectId)
-        {
 
-            TasksVM tasksVM = new TasksVM();
-            tasksVM.Project = await _context.Projects.Where(x => x.ProjectId == projectId).FirstOrDefaultAsync();
-            tasksVM.Project.Tasks = await _context.Tasks.Include(t => t.AssignedToUsernameNavigation).Where(p => p.ProjectId == projectId).Where(x=>x.AssignedToUsername==User.Identity.Name)
-                    .Include(t => t.Project).Include(t => t.TaskDocumentNavigation)
-                 .ToListAsync();
-            return View(tasksVM);
-
-
-
-        }
         // GET: Tasks/Details/5
         public async Task<IActionResult> Details(int? id)
         {

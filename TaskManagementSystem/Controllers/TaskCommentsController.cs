@@ -62,8 +62,8 @@ namespace TaskManagementSystem.Controllers
         {
             int taskid = taskComment.TaskId;
             // Models.Task task = taskComment.Task;
-            taskComment.Task = _context.Tasks.FirstOrDefault(x => x.TaskId == taskid);
-            taskComment.Task.Project = _context.Projects.FirstOrDefault(x => x.ProjectId == taskComment.Task.ProjectId);
+            taskComment.Task = _context.Tasks.Include(x=>x.AssignedToUsernameNavigation).FirstOrDefault(x => x.TaskId == taskid);
+            taskComment.Task.Project = _context.Projects.Include(p=>p.CreatedByUsernameNavigation).FirstOrDefault(x => x.ProjectId == taskComment.Task.ProjectId);
             taskComment.UsernameNavigation = (User)_context.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
             ModelState.Clear();
             TryValidateModel(taskComment);
@@ -105,8 +105,8 @@ namespace TaskManagementSystem.Controllers
         {
             int taskid = taskComment.TaskId;
             // Models.Task task = taskComment.Task;
-            taskComment.Task = _context.Tasks.FirstOrDefault(x => x.TaskId == taskid);
-            taskComment.Task.Project = _context.Projects.FirstOrDefault(x => x.ProjectId == taskComment.Task.ProjectId);
+            taskComment.Task = _context.Tasks.Include(x => x.AssignedToUsernameNavigation).FirstOrDefault(x => x.TaskId == taskid);
+            taskComment.Task.Project = _context.Projects.Include(p => p.CreatedByUsernameNavigation).FirstOrDefault(x => x.ProjectId == taskComment.Task.ProjectId);
             taskComment.UsernameNavigation = (User)_context.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
             ModelState.Clear();
             TryValidateModel(taskComment);

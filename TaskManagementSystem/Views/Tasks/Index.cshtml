@@ -8,22 +8,25 @@
 
 <ul class="nav nav-tabs" role="tablist">
     <li class="nav-item" role="presentation">
-        <a class="nav-link active" data-bs-toggle="tab" href="#mytasks" aria-selected="true" role="tab">My Tasks</a>
+        <a class="nav-link @(Model.Tab == "alltasks" ? "active" : "")" href="@Url.Action("Index", new { projectId = Model.Project.ProjectId, tab = "alltasks" })" role="tab">All Tasks</a>
     </li>
     <li class="nav-item" role="presentation">
-        <a class="nav-link" data-bs-toggle="tab" href="#alltasks" aria-selected="false" role="tab" tabindex="-1">All Tasks</a>
+        <a class="nav-link @(Model.Tab == "mytasks" ? "active" : "")" href="@Url.Action("Index", new { projectId = Model.Project.ProjectId, tab = "mytasks" })" role="tab">My Tasks</a>
     </li>
+</ul>
+
+
     <div id="myTabContent" class="tab-content">
         <div class="tab-pane fade active show" id="mytasks" role="tabpanel">
             <h1>Tasks</h1>
 
 
-            <h3>These are the Tasks for the Project: @Model.Project.ProjectId</h3>
-            <h3>Project Deadline: @Model.Project.Deadline</h3>
+            <h5>These are the Tasks for the Project: @Model.Project.ProjectId</h5>
+            <h5>Project Deadline: @Model.Project.Deadline</h5>
             <div class="col-8">
                 <form asp-controller="Tasks" asp-action="Index" method="get">
                     Task Name:
-                    <input type="text" name="SearchString" value="@Context.Request.Query["SearchString"].ToString()" />
+                    <input type="text" name="taskname" value="@Context.Request.Query["taskname"].ToString()" />
 
                     <input type="submit" value="Search" class="btn btn-secondary mx-2" />
                     <a asp-controller="Tasks" asp-action="Index" class="btn btn-outline-danger">
@@ -33,10 +36,13 @@
 
 
             </div>
+        @if (Model.Project.CreatedByUsername == User.Identity.Name)
+        {
             <p>
 
                 <a asp-action="Create" asp-route-projectId="@Model.Project.ProjectId" class="btn btn-primary">Create New Task</a>
-            </p>
+            </p> 
+            }
             <table class="table">
                 <thead>
                     <tr>
@@ -92,8 +98,12 @@
                             </td>
                             <td>
                                 <a asp-action="Edit" asp-route-id="@item.TaskId">Edit</a> |
-                                <a asp-action="Details" asp-route-id="@item.TaskId">Details</a> |
+                            <a asp-action="Details" asp-route-id="@item.TaskId">Details</a> |
+                            @if (Model.Project.CreatedByUsername == User.Identity.Name)
+                            {
                                 <a asp-action="Delete" asp-route-id="@item.TaskId">Delete</a>
+                            }
+
                             </td>
                         </tr>
                     }
@@ -105,12 +115,12 @@
             <h1>Tasks</h1>
 
 
-<h3>These are the Tasks for the Project: @Model.Project.ProjectId</h3>
-<h3>Project Deadline: @Model.Project.Deadline</h3>
+<h5>These are the Tasks for the Project: @Model.Project.ProjectId</h5>
+<h>Project Deadline: @Model.Project.Deadline</h>
           <div class="col-8">
             <form asp-controller="Tasks" asp-action="Index" method="get">
                 Task Name:
-                <input type="text" name="SearchString" value="@Context.Request.Query["SearchString"].ToString()" />
+                    <input type="text" name="taskname" value="@Context.Request.Query["taskname"].ToString()" />
            
                 <input type="submit" value="Search" class="btn btn-secondary mx-2" />
         <a asp-controller="Tasks" asp-action="Index" class="btn btn-outline-danger">
@@ -120,10 +130,12 @@
 
 
         </div>
+        @if (Model.Project.CreatedByUsername==User.Identity.Name){
 <p>
      
     <a asp-action="Create" asp-route-projectId="@Model.Project.ProjectId" class="btn btn-primary">Create New Task</a>
 </p>
+        }
 <table class="table">
     <thead>
         <tr>
@@ -179,8 +191,12 @@
                 </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.TaskId">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.TaskId">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.TaskId">Delete</a>
+                            <a asp-action="Details" asp-route-id="@item.TaskId">Details</a> |
+                @if (Model.Project.CreatedByUsername == User.Identity.Name)
+{
+    <a asp-action="Delete" asp-route-id="@item.TaskId">Delete</a>
+}
+
                 </td>
             </tr>
         }

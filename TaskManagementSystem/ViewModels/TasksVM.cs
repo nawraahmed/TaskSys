@@ -10,5 +10,7 @@ namespace TaskManagementSystem.ViewModels
         public IEnumerable<ProjectMember> ProjectMembers { get; set; }
         public string SelectedProjectMemberUsername { get; set; }
 
+        public string Tab { get; set; }
+
     }
 }
