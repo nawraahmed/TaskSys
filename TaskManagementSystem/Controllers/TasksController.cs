@@ -91,6 +91,7 @@ namespace TaskManagementSystem.Controllers
                 .Include(t => t.AssignedToUsernameNavigation)
                 .Include(t => t.Project)
                 .Include(t => t.TaskDocumentNavigation)
+                .Include(t=>t.TaskComments)
                 .FirstOrDefaultAsync(m => m.TaskId == id);
             if (task == null)
             {
@@ -149,7 +150,7 @@ namespace TaskManagementSystem.Controllers
             // Create a notification for the assigned user
             Notification notification = new Notification
             {
-                Message = $"You have been assigned a new task: {task.Name} in {task.Project.Name} Project.",
+                Message = $"You have been assigned a new task : {task.Name} in {task.Project.Name} Project by manager {task.Project.CreatedByUsername}.",
                 Type = "New Task Assignment",
                 Status = "Unread",
                 Username = task.AssignedToUsername
