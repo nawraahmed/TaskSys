@@ -20,7 +20,7 @@ namespace TaskManagementSystem.Controllers
         }
 
         // GET: Tasks
-        public async Task<IActionResult> Index(int projectId, string tab = "alltasks")
+        public async Task<IActionResult> Index(int projectId, string tab = "alltasks", string search = "")
         {
             TasksVM tasksVM = new TasksVM();
 
@@ -30,21 +30,50 @@ namespace TaskManagementSystem.Controllers
 
             if (tab == "mytasks")
             {
-                tasksVM.Project.Tasks = await _context.Tasks
+                if (!string.IsNullOrEmpty(search))
+                {
+                    tasksVM.Project.Tasks = await _context.Tasks
+                   .Include(t => t.AssignedToUsernameNavigation)
+                   .Where(p => p.ProjectId == projectId && p.AssignedToUsername == User.Identity.Name && p.Name.Contains(search)) // Filter by assigned user
+                   .Include(t => t.Project)
+                   .Include(t => t.TaskDocumentNavigation)
+                   .ToListAsync();
+
+                }
+
+                else
+                {
+
+                    tasksVM.Project.Tasks = await _context.Tasks
                     .Include(t => t.AssignedToUsernameNavigation)
                     .Where(p => p.ProjectId == projectId && p.AssignedToUsername == User.Identity.Name) // Filter by assigned user
                     .Include(t => t.Project)
                     .Include(t => t.TaskDocumentNavigation)
                     .ToListAsync();
+
+                }
             }
             else if (tab == "alltasks")
             {
-                tasksVM.Project.Tasks = await _context.Tasks
-                    .Include(t => t.AssignedToUsernameNavigation)
-                    .Where(p => p.ProjectId == projectId)
-                    .Include(t => t.Project)
-                    .Include(t => t.TaskDocumentNavigation)
-                    .ToListAsync();
+                // Apply search filter if search term is provided
+                if (!string.IsNullOrEmpty(search))
+                {
+                    tasksVM.Project.Tasks = await _context.Tasks
+                        .Include(t => t.AssignedToUsernameNavigation)
+                        .Where(p => p.ProjectId == projectId && p.Name.Contains(search))
+                        .Include(t => t.Project)
+                        .Include(t => t.TaskDocumentNavigation)
+                        .ToListAsync();
+                }
+                else
+                {
+                    tasksVM.Project.Tasks = await _context.Tasks
+                        .Include(t => t.AssignedToUsernameNavigation)
+                        .Where(p => p.ProjectId == projectId)
+                        .Include(t => t.Project)
+                        .Include(t => t.TaskDocumentNavigation)
+                        .ToListAsync();
+                }
             }
 
             return View(tasksVM);
@@ -102,10 +131,10 @@ namespace TaskManagementSystem.Controllers
             int projectId = task.ProjectId;
 
             // Retrieve the project using the projectId
-            task.Project = _context.Projects.FirstOrDefault(x => x.ProjectId == projectId);
+            task.Project = _context.Projects.Include(p => p.CreatedByUsernameNavigation).FirstOrDefault(x => x.ProjectId == projectId);
 
             // Populate the Project property of the view model using the projectId
-            tasksVM.Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId);
+            tasksVM.Project = _context.Projects.Include(p=>p.CreatedByUsernameNavigation).FirstOrDefault(p => p.ProjectId == projectId);
 
 
             // Retrieve the selected project member's username
@@ -117,14 +146,19 @@ namespace TaskManagementSystem.Controllers
             // Set the task's AssignedToUsername to the selected project member's username
             task.AssignedToUsername = tasksVM.SelectedProjectMemberUsername;
 
-            // Retrieve the currently logged-in user
-            var currentUser = await _context.Users.FirstOrDefaultAsync(x => x.Username == User.Identity.Name);
-
-            if (currentUser != null)
+            // Create a notification for the assigned user
+            Notification notification = new Notification
             {
-                // Set the CreatedByUsernameNavigation property of the project to the current user
-                task.Project.CreatedByUsernameNavigation = currentUser;
-            }
+                Message = $"You have been assigned a new task: {task.Name} in {task.Project.Name} Project.",
+                Type = "New Task Assignment",
+                Status = "Unread",
+                Username = task.AssignedToUsername
+            };
+
+            // Add the notification to the context
+            _context.Notifications.Add(notification);
+
+
             //clear the modelstate and validate it
             ModelState.Clear();
             TryValidateModel(task);
@@ -185,21 +219,13 @@ namespace TaskManagementSystem.Controllers
 
 
             // Populate the Project property using the projectId
-            task.Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId);
+            task.Project = _context.Projects.Include(p => p.CreatedByUsernameNavigation).FirstOrDefault(p => p.ProjectId == projectId);
 
 
             // Retrieve the user entity based on the AssignedToUsername of the task
             task.AssignedToUsernameNavigation = _context.Users.FirstOrDefault(x => x.Username == task.AssignedToUsername);
 
 
-            // Retrieve the currently logged-in user
-            var currentUser = await _context.Users.FirstOrDefaultAsync(x => x.Username == User.Identity.Name);
-
-            if (currentUser != null)
-            {
-                // Set the CreatedByUsernameNavigation property of the project to the current user
-                task.Project.CreatedByUsernameNavigation = currentUser;
-            }
 
             ModelState.Clear();
             TryValidateModel(task);
@@ -210,6 +236,30 @@ namespace TaskManagementSystem.Controllers
                     // Update the task in the context and save changes
                     _context.Update(task);
                     await _context.SaveChangesAsync();
+
+                    // Retrieve the project manager for the corresponding project
+                    var projectManager = await _context.Projects
+                        .Include(p => p.CreatedByUsernameNavigation)
+                        .Where(p => p.ProjectId == projectId)
+                        .Select(p => p.CreatedByUsernameNavigation)
+                        .FirstOrDefaultAsync();
+
+                    if (projectManager != null)
+                    {
+                        // Create a new notification for the project manager
+                        var newNotification = new Notification
+                        {
+                            Message = $"Task {task.Name} status updated to {task.Status} by project member {task.AssignedToUsername}",
+                            Type = "Task Status Update",
+                            Status = "Unread",
+                            Username = projectManager.Username
+                        };
+
+                        // Add the new notification to the context and save changes
+                        _context.Notifications.Add(newNotification);
+                        await _context.SaveChangesAsync();
+
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
