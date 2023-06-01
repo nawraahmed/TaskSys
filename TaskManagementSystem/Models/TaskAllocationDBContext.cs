@@ -123,13 +123,13 @@ namespace TaskManagementSystem.Models
                 entity.HasOne(d => d.Project)
                     .WithMany(p => p.ProjectMembers)
                     .HasForeignKey(d => d.ProjectId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK__project_m__proje__4AB81AF0");
 
                 entity.HasOne(d => d.UsernameNavigation)
                     .WithMany(p => p.ProjectMembers)
                     .HasForeignKey(d => d.Username)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK__project_m__usern__4BAC3F29");
             });
 

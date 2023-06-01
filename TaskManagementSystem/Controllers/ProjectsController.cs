@@ -228,6 +228,7 @@ namespace TaskManagementSystem.Controllers
             editProject.Project.ProjectMembers = new List<ProjectMember>();
             editProject.Project.Tasks = new List<Models.Task>();
             editProject.Users = _context.Users.ToList();
+
             //store the current logged in user and assign it to the CreatedByUsername and the navigational property
             var user = await _context.Users.SingleOrDefaultAsync(x => x.Username == User.Identity.Name);
             editProject.Project.CreatedByUsername = user.Username;
@@ -253,38 +254,36 @@ namespace TaskManagementSystem.Controllers
                 existingProject.Budget = editProject.Project.Budget;
                 existingProject.Status = editProject.Project.Status;
 
+
                 // Update the project members with the selected members
-                if (selectedMembers != null && selectedMembers.Count > 0)
+                if (selectedMembers != null)
                 {
-                    // Get the existing project member usernames
-                    var existingMembers = existingProject.ProjectMembers.Select(m => m.Username).ToList();
+                    var membersToAdd = selectedMembers.Except(existingProject.ProjectMembers.Select(m => m.Username)).ToList();
+                    var membersToRemove = existingProject.ProjectMembers.Where(m => !selectedMembers.Contains(m.Username)).ToList();
 
-                    // Add or remove project members based on the selected members
-                    foreach (var memberName in selectedMembers)
+                    foreach (var memberName in membersToAdd)
                     {
-                        if (!existingMembers.Contains(memberName))
+                        // Create a new project member
+                        var projectMember = new ProjectMember
                         {
-                            // Create a new project member
-                            var projectMember = new ProjectMember
-                            {
-                                ProjectId = existingProject.ProjectId,
-                                Username = memberName.Trim()
-                            };
+                            ProjectId = editProject.Project.ProjectId,
+                            Username = memberName.Trim()
+                        };
 
-                            // Add the project member to the existing project
-                            existingProject.ProjectMembers.Add(projectMember);
-                        }
-                        else
-                        {
-                            // Remove the project member from the existing project members list
-                            var existingMember = existingProject.ProjectMembers.FirstOrDefault(m => m.Username == memberName);
-                            existingProject.ProjectMembers.Remove(existingMember);
-                        }
+                        // Add the project member to the existing project
+                        existingProject.ProjectMembers.Add(projectMember);
+                    }
+
+                    foreach (var member in membersToRemove)
+                    {
+                        // Remove the project member from the existing project members list
+                        existingProject.ProjectMembers.Remove(member);
                     }
                 }
 
+
                 //update the projects table
-                _context.Projects.Update(editProject.Project);
+                _context.Projects.Update(existingProject);
                 await _context.SaveChangesAsync();
 
 
