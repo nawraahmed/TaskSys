@@ -18,6 +18,7 @@ builder.Services.AddDbContext<IdentityContext>(options => options.UseSqlServer(
     ));
 
 builder.Services.AddDefaultIdentity<IdentityUsers>()
+    .AddRoles<IdentityRole>() // Add this line to register RoleManager<IdentityRole>
     .AddEntityFrameworkStores<IdentityContext>();
 
 var app = builder.Build();

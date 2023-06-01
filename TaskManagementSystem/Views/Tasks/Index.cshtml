@@ -24,15 +24,20 @@
             <h5>These are the Tasks for the Project: @Model.Project.ProjectId</h5>
             <h5>Project Deadline: @Model.Project.Deadline</h5>
             <div class="col-8">
-                <form asp-controller="Tasks" asp-action="Index" method="get">
-                    Task Name:
-                    <input type="text" name="taskname" value="@Context.Request.Query["taskname"].ToString()" />
+  <form method="get" action="@Url.Action("Index")" class="form-inline">
+    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+    <input type="hidden" name="tab" value="@Model.Tab" />
+    <div class="input-group">
+        <input type="text" name="search" placeholder="Search tasks..." class="form-control" value="@Context.Request.Query["search"]" />
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-primary">Search</button>
+                       @* <a asp-controller="Tasks" asp-action="Index" class="btn btn-outline-danger">
+                            Clear
+                        </a>*@
+        </div>
+    </div>
+</form>
 
-                    <input type="submit" value="Search" class="btn btn-secondary mx-2" />
-                    <a asp-controller="Tasks" asp-action="Index" class="btn btn-outline-danger">
-                        Clear
-                    </a>
-                </form>
 
 
             </div>
@@ -116,18 +121,19 @@
 
 
 <h5>These are the Tasks for the Project: @Model.Project.ProjectId</h5>
-<h>Project Deadline: @Model.Project.Deadline</h>
+<h5>Project Deadline: @Model.Project.Deadline</h5>
           <div class="col-8">
-            <form asp-controller="Tasks" asp-action="Index" method="get">
-                Task Name:
-                    <input type="text" name="taskname" value="@Context.Request.Query["taskname"].ToString()" />
-           
-                <input type="submit" value="Search" class="btn btn-secondary mx-2" />
-        <a asp-controller="Tasks" asp-action="Index" class="btn btn-outline-danger">
-                    Clear
-                </a>
+            <form method="get" action="@Url.Action("Index")" class="form-inline">
+                <div class="form-group">
+                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                    <input type="hidden" name="tab" value="@Model.Tab" />
+                    <input type="text" name="search" placeholder="Search tasks..." class="form-control mr-2" value="@Context.Request.Query["search"]" />
+                    <button type="submit" class="btn btn-primary">Search</button>
+                  @*  <a asp-controller="Tasks" asp-action="Index" class="btn btn-outline-danger">
+                        Clear
+                    </a>*@
+                </div>
             </form>
-
 
         </div>
         @if (Model.Project.CreatedByUsername==User.Identity.Name){

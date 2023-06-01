@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TaskManagementSystem.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace TaskManagementSystem.Controllers
 {
@@ -21,7 +22,7 @@ namespace TaskManagementSystem.Controllers
         // GET: Notifications
         public async Task<IActionResult> Index()
         {
-            var taskAllocationDBContext = _context.Notifications.Include(n => n.UsernameNavigation);
+            var taskAllocationDBContext = _context.Notifications.Include(n => n.UsernameNavigation).Include(n=>n.UsernameNavigation.Projects).Where(n=>n.Username==User.Identity.Name);
             return View(await taskAllocationDBContext.ToListAsync());
         }
 
@@ -40,6 +41,11 @@ namespace TaskManagementSystem.Controllers
             {
                 return NotFound();
             }
+            // Update the status to "Read"
+    notification.Status = "Read";
+
+            // Save the changes to the database
+            await _context.SaveChangesAsync();
 
             return View(notification);
         }

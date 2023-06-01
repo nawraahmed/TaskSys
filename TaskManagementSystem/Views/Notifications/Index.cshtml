@@ -19,11 +19,11 @@
                 <div class="card-body">
                     <h5 class="card-title">@item.Message</h5>
                     <h6 class="card-subtitle mb-2 text-muted">@item.Type</h6>
-                    <p class="card-text">@item.Status</p>
-                    <p class="card-text">Username: @item.UsernameNavigation.Username</p>
-                    <a asp-action="Edit" asp-route-id="@item.NotificationId" class="btn btn-primary">Edit</a>
+                    <p class="card-text">Status: @item.Status</p>
+                @*    <p class="card-text">Username: @item.UsernameNavigation.Username</p>*@
+              
                     <a asp-action="Details" asp-route-id="@item.NotificationId" class="btn btn-secondary">Details</a>
-                    <a asp-action="Delete" asp-route-id="@item.NotificationId" class="btn btn-danger">Delete</a>
+              
                 </div>
             </div>
         </div>
