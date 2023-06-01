@@ -36,20 +36,31 @@ namespace TaskManagementSystem.Controllers
 
 
         // GET: Projects
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search)
         {
             //check if either the logged in user is a project member or the project is created by him!
-            var taskAllocationDBContext = _context.Projects
-     .Include(p => p.CreatedByUsernameNavigation)
-     .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
+            IQueryable<Project> taskAllocationDBContext = _context.Projects
+             .Include(p => p.CreatedByUsernameNavigation)
+             .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
 
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                taskAllocationDBContext = taskAllocationDBContext.Where(p => p.Name.Contains(search));
+
+            }
             return View(await taskAllocationDBContext.ToListAsync());
         }
 
-        public async Task<IActionResult> MyProjectsIndex()
+        public async Task<IActionResult> MyProjectsIndex(string search)
         {
             //display the projects that it is created by this user
-            var taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation).Where(x => x.CreatedByUsername == User.Identity.Name);
+            IQueryable<Project> taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation).Where(x => x.CreatedByUsername == User.Identity.Name);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                taskAllocationDBContext = taskAllocationDBContext.Where(p => p.Name.Contains(search));
+            }
             return View(await taskAllocationDBContext.ToListAsync());
         }
 
@@ -337,6 +348,36 @@ namespace TaskManagementSystem.Controllers
             var project = await _context.Projects.FindAsync(id);
             if (project != null)
             {
+
+
+                //remove the documents
+
+                //remove the project tasks
+                // Retrieve the project tasks associated with the project
+                var projectTasks = await _context.Tasks
+                    .Where(t => t.ProjectId == id)
+                    .ToListAsync();
+
+                // Remove the project tasks
+                foreach (var task in projectTasks)
+                {
+                    _context.Tasks.Remove(task);
+                }
+
+
+                //remove the project members
+                // Retrieve the project members associated with the project
+                var projectMembers = await _context.ProjectMembers
+                    .Where(pm => pm.ProjectId == id)
+                    .ToListAsync();
+
+                // Remove the project members
+                foreach (var projectMember in projectMembers)
+                {
+                    _context.ProjectMembers.Remove(projectMember);
+                }
+
+                //then remove the project itself
                 _context.Projects.Remove(project);
             }
 
