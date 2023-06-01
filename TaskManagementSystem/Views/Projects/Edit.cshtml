@@ -41,9 +41,16 @@
                         asp-items="@Model.Users.Select(m=> new SelectListItem {Text = m.Username})"></select>
             </div>
 
+            
+
             <div class="form-group">
                 <label asp-for="Project.Status" class="control-label"></label>
-                <input asp-for="Project.Status" class="form-control" style="background-color: lightgray; color:orangered" value="Pending" />
+                <select asp-for="Project.Status" class="form-control">
+                    <option value="Pending" style="color:orangered">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Overdue">Overdue</option>
+                </select>
                 <span asp-validation-for="Project.Status" class="text-danger"></span>
             </div>
 

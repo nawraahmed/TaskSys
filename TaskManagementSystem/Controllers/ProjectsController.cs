@@ -337,6 +337,36 @@ namespace TaskManagementSystem.Controllers
             var project = await _context.Projects.FindAsync(id);
             if (project != null)
             {
+
+
+                //remove the documents
+
+                //remove the project tasks
+                // Retrieve the project tasks associated with the project
+                var projectTasks = await _context.Tasks
+                    .Where(t => t.ProjectId == id)
+                    .ToListAsync();
+
+                // Remove the project tasks
+                foreach (var task in projectTasks)
+                {
+                    _context.Tasks.Remove(task);
+                }
+
+
+                //remove the project members
+                // Retrieve the project members associated with the project
+                var projectMembers = await _context.ProjectMembers
+                    .Where(pm => pm.ProjectId == id)
+                    .ToListAsync();
+
+                // Remove the project members
+                foreach (var projectMember in projectMembers)
+                {
+                    _context.ProjectMembers.Remove(projectMember);
+                }
+
+                //then remove the project itself
                 _context.Projects.Remove(project);
             }
 
