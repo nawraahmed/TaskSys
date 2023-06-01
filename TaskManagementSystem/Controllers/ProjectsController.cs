@@ -66,12 +66,20 @@ namespace TaskManagementSystem.Controllers
             var project = await _context.Projects
                 .Include(p => p.CreatedByUsernameNavigation)
                 .FirstOrDefaultAsync(m => m.ProjectId == id);
-            if (project == null)
-            {
-                return NotFound();
-            }
+            // Fetch the existing project members for the selected project
+            var projectMembers = _context.ProjectMembers
+                .Where(pm => pm.ProjectId == project.ProjectId)
+                .Select(pm => pm.Username)
+                .ToList();
 
-            return View(project);
+            var pviewModel = new ProjectsUsersVM
+            {
+                Project = project,
+                Users = _context.Users.ToList(),
+                SelectedMembers = projectMembers
+            };
+
+            return View(pviewModel);
         }
 
         // GET: Projects/Create
