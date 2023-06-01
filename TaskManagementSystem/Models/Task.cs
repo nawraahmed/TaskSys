@@ -31,19 +31,21 @@ namespace TaskManagementSystem.Models
         public DateTime? Deadline { get; set; }
         [Column("project_id")]
         public int ProjectId { get; set; }
+        [Display(Name = "Assigned To")]
         [Column("assigned_to_username")]
         [StringLength(50)]
         [Unicode(false)]
         public string AssignedToUsername { get; set; } = null!;
         [Column("task_document")]
         public int? TaskDocument { get; set; }
-
+        [Display(Name = "Assigned To")]
         [ForeignKey("AssignedToUsername")]
         [InverseProperty("Tasks")]
         public virtual User AssignedToUsernameNavigation { get; set; } = null!;
         [ForeignKey("ProjectId")]
         [InverseProperty("Tasks")]
         public virtual Project Project { get; set; } = null!;
+        [Display(Name = "Document")]
         [ForeignKey("TaskDocument")]
         [InverseProperty("Tasks")]
         public virtual Document? TaskDocumentNavigation { get; set; }

@@ -28,7 +28,7 @@ namespace TaskManagementSystem.Models
         [StringLength(50)]
         [Unicode(false)]
         public string Username { get; set; } = null!;
-
+        [Display(Name = "Assigned To")]
         [ForeignKey("Username")]
         [InverseProperty("Notifications")]
         public virtual User UsernameNavigation { get; set; } = null!;

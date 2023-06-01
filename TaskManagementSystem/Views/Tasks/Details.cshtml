@@ -54,6 +54,25 @@
             @Html.DisplayFor(model => model.TaskDocumentNavigation.DocumentId)
         </dd>
     </dl>
+
+
+    @if (Model.TaskComments.Any())
+    {
+        <h4>Comments</h4>
+        @for (int i = 0; i < Model.TaskComments.Count; i++)
+        {
+            var commentsList = Model.TaskComments.ToList();
+            var comment = commentsList[i];
+            <div>
+                <p><strong> @(i + 1):</strong> @comment.Username </p>
+                <p>@comment.Comment</p>
+            </div>
+            <hr />
+        }
+    }
+
+
+
     <a asp-action="Create" asp-controller="TaskComments" asp-route-taskid="@Model?.TaskId">Add Comment</a> |
 </div>
 <div>
