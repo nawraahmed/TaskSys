@@ -10,6 +10,14 @@
 <p>
     <a asp-action="Create" class="btn btn-primary">Create New Project</a>
 </p>
+<form method="get" asp-controller="Projects" asp-action="Index" class="form-inline">
+    <div class="input-group">
+        <input type="text" name="search" placeholder="Search projects..." class="form-control" value="@Context.Request.Query["search"].ToString()" />
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </div>
+</form>
 <table class="table">
     <thead>
         <tr>

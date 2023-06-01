@@ -36,20 +36,31 @@ namespace TaskManagementSystem.Controllers
 
 
         // GET: Projects
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search)
         {
             //check if either the logged in user is a project member or the project is created by him!
-            var taskAllocationDBContext = _context.Projects
-     .Include(p => p.CreatedByUsernameNavigation)
-     .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
+            IQueryable<Project> taskAllocationDBContext = _context.Projects
+             .Include(p => p.CreatedByUsernameNavigation)
+             .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
 
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                taskAllocationDBContext = taskAllocationDBContext.Where(p => p.Name.Contains(search));
+
+            }
             return View(await taskAllocationDBContext.ToListAsync());
         }
 
-        public async Task<IActionResult> MyProjectsIndex()
+        public async Task<IActionResult> MyProjectsIndex(string search)
         {
             //display the projects that it is created by this user
-            var taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation).Where(x => x.CreatedByUsername == User.Identity.Name);
+            IQueryable<Project> taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation).Where(x => x.CreatedByUsername == User.Identity.Name);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                taskAllocationDBContext = taskAllocationDBContext.Where(p => p.Name.Contains(search));
+            }
             return View(await taskAllocationDBContext.ToListAsync());
         }
 

@@ -62,7 +62,9 @@
 
                     //add this "flexCheckChecked" as a class, if the memebr is part of the prject, and remove the class of non-members
                     var isChecked = (Model.SelectedMembers != null && user.Username != null && Model.SelectedMembers.Contains(user.Username)) ? "flexCheckChecked" : "";
-
+                    
+                    //disbale the project manager name from the project memebrs list
+                    var isDisabled = user.Username == User.Identity.Name? "disabled" : "";
 
                     //add this "checked" as an attribute, if the memebr is part of the prject, and remove the class of non-members
                     var checkedAttribute = (Model.SelectedMembers != null && user.Username != null && Model.SelectedMembers.Contains(user.Username)) ? "checked" : "";
@@ -70,7 +72,7 @@
 
                     <div class="form-check">
 
-                        <input class="form-check-input" for="flexCheckChecked" type="checkbox" id="@("user_" + user.Username) @isChecked" value="@user.Username" name="SelectedMembers" @checkedAttribute />
+                        <input class="form-check-input" for="flexCheckChecked" type="checkbox" id="@("user_" + user.Username) @isChecked" value="@user.Username" name="SelectedMembers" @checkedAttribute @isDisabled />
                         <label class="form-check-label" for="@("user_" + user.Username)">@user.Username</label>
                     </div>
                 }
