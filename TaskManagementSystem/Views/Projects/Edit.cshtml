@@ -46,6 +46,29 @@
                 <input asp-for="Project.Status" class="form-control" style="background-color: lightgray; color:orangered" value="Pending" />
                 <span asp-validation-for="Project.Status" class="text-danger"></span>
             </div>
+
+            <div class="form-group">
+                <label class="control-label">Project Members:</label>
+                
+                @foreach (var user in Model.Users)
+                {
+
+                    //add this "flexCheckChecked" as a class, if the memebr is part of the prject, and remove the class of non-members
+                    var isChecked = Model.SelectedMembers.Contains(user.Username) ? "flexCheckChecked" : "";
+
+                    //add this "checked" as an attribute, if the memebr is part of the prject, and remove the class of non-members
+                    var checkedAttribute = Model.SelectedMembers.Contains(user.Username) ? "checked" : "";
+
+
+                    <div class="form-check">
+
+                        <input class="form-check-input" for="flexCheckChecked" type="checkbox" id="@("user_" + user.Username) @isChecked" value="@user.Username" name="SelectedMembers" @checkedAttribute />
+                        <label class="form-check-label" for="@("user_" + user.Username)">@user.Username</label>
+                    </div>
+                }
+
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>

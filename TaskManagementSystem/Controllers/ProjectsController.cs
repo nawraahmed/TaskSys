@@ -78,10 +78,13 @@ namespace TaskManagementSystem.Controllers
         public IActionResult Create()
         {
 
+            //instatination of view model, new project object, populate the users list, new list for the members
+            //to assign values to them from the view of create.cshtml
             var pviewModel = new ProjectsUsersVM
             {
                 Project = new(),
-                Users = _context.Users
+                Users = _context.Users,
+                SelectedMembers = new List<String>()
             };
             return View(pviewModel);
         }
@@ -91,7 +94,7 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProjectId,Name,Description,Deadline,Budget,CreatedByUsername,Status, SelectedMembers, Tasks, project_members_id")] Project project, String[] selectedMembers)
+        public async Task<IActionResult> Create([Bind("ProjectId,Name,Description,Deadline,Budget,CreatedByUsername,Status, SelectedMembers, Tasks, project_members_id")] Project project, List<String> selectedMembers)
         {
             //close any previously opened connection
             await _context.Database.CloseConnectionAsync();
@@ -120,11 +123,11 @@ namespace TaskManagementSystem.Controllers
                 await _context.SaveChangesAsync();
 
 
-                //insert to project members table if the array is not empty 
-                if (selectedMembers != null && selectedMembers.Length > 0)
+                //if the List is not empty, insert to project members table using a loop
+                if (selectedMembers != null && selectedMembers.Count > 0)
                 {
 
-                    //loop to insert all the members in the table
+                    //loop to insert a record in projectMemebr table for each member in the list
                     foreach (var memberName in selectedMembers)
                     {
 
@@ -132,7 +135,7 @@ namespace TaskManagementSystem.Controllers
                         var projectMember = new ProjectMember
                         {
                             ProjectId = project.ProjectId,
-                            Username = memberName.Trim() //triming the names (if more than one is inserted)
+                            Username = memberName.Trim() //triming the names
                         };
 
 
@@ -178,10 +181,18 @@ namespace TaskManagementSystem.Controllers
                 return NotFound();
             }
 
+            // Fetch the existing project members for the selected project
+            var projectMembers = _context.ProjectMembers
+                .Where(pm => pm.ProjectId == project.ProjectId)
+                .Select(pm => pm.Username)
+                .ToList();
+
+
             var pviewModel = new ProjectsUsersVM
             {
                 Project = project,
-                Users = _context.Users
+                Users = _context.Users.ToList(),
+                SelectedMembers = projectMembers
             };
 
             ViewData["CreatedByUsername"] = new SelectList(_context.Users, "Username", "Username", project.CreatedByUsername);
@@ -193,22 +204,84 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, ProjectsUsersVM editProject)
+        public async Task<IActionResult> Edit(int? id, ProjectsUsersVM editProject, List<String> selectedMembers)
         {
+
+            //if the id is not found
             if (id != editProject.Project.ProjectId)
             {
                 return NotFound();
             }
 
+
+           
+
+            // Initialize the navigational properties to ensure that ModelState is valid
+            editProject.Project.ProjectMembers = new List<ProjectMember>();
+            editProject.Project.Tasks = new List<Models.Task>();
+
+            //store the current logged in user and assign it to the CreatedByUsername and the navigational property
+            var user = await _context.Users.SingleOrDefaultAsync(x => x.Username == User.Identity.Name);
+            editProject.Project.CreatedByUsername = user.Username;
+            editProject.Project.CreatedByUsernameNavigation = user;
+
+            //clearing model state after the newely posted project object
+            ModelState.Clear();
+            TryValidateModel(editProject);
+
+            //check if the model state is valid
             if (ModelState.IsValid)
             {
 
-                _context.Update(editProject.Project);
+                // Retrieve the existing project from the database
+                var existingProject = await _context.Projects
+                    .Include(p => p.ProjectMembers)
+                    .FirstOrDefaultAsync(p => p.ProjectId == id);
+
+                //store the new values in the edit form
+                existingProject.Name = editProject.Project.Name;
+                existingProject.Description = editProject.Project.Description;
+                existingProject.Deadline = editProject.Project.Deadline;
+                existingProject.Budget = editProject.Project.Budget;
+                existingProject.Status = editProject.Project.Status;
+
+                // Update the project members with the selected members
+                if (selectedMembers != null && selectedMembers.Count > 0)
+                {
+                    // Get the existing project member usernames
+                    var existingMembers = existingProject.ProjectMembers.Select(m => m.Username).ToList();
+
+                    // Add or remove project members based on the selected members
+                    foreach (var memberName in selectedMembers)
+                    {
+                        if (!existingMembers.Contains(memberName))
+                        {
+                            // Create a new project member
+                            var projectMember = new ProjectMember
+                            {
+                                ProjectId = existingProject.ProjectId,
+                                Username = memberName.Trim()
+                            };
+
+                            // Add the project member to the existing project
+                            existingProject.ProjectMembers.Add(projectMember);
+                        }
+                        else
+                        {
+                            // Remove the project member from the existing project members list
+                            var existingMember = existingProject.ProjectMembers.FirstOrDefault(m => m.Username == memberName);
+                            existingProject.ProjectMembers.Remove(existingMember);
+                        }
+                    }
+                }
+
+                //update the projects table
+                _context.Projects.Update(editProject.Project);
                 await _context.SaveChangesAsync();
-                TempData["CreateSuccess"] = "Project Updated Successfully";
+
+
+                TempData["UpdateSuccess"] = "Project Updated Successfully";
                 return RedirectToAction("Index");
-
-
             }
             else
             {
