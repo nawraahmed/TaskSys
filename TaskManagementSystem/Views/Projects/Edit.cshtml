@@ -54,10 +54,11 @@
                 {
 
                     //add this "flexCheckChecked" as a class, if the memebr is part of the prject, and remove the class of non-members
-                    var isChecked = Model.SelectedMembers.Contains(user.Username) ? "flexCheckChecked" : "";
+                    var isChecked = (Model.SelectedMembers != null && user.Username != null && Model.SelectedMembers.Contains(user.Username)) ? "flexCheckChecked" : "";
+
 
                     //add this "checked" as an attribute, if the memebr is part of the prject, and remove the class of non-members
-                    var checkedAttribute = Model.SelectedMembers.Contains(user.Username) ? "checked" : "";
+                    var checkedAttribute = (Model.SelectedMembers != null && user.Username != null && Model.SelectedMembers.Contains(user.Username)) ? "checked" : "";
 
 
                     <div class="form-check">
