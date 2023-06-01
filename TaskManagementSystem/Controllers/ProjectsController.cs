@@ -241,23 +241,17 @@ namespace TaskManagementSystem.Controllers
             if (ModelState.IsValid)
             {
 
-                // Remove this line: _context.Projects.Update(editProject.Project);
-
                 // Retrieve the existing project from the database
                 var existingProject = await _context.Projects
                     .Include(p => p.ProjectMembers)
                     .FirstOrDefaultAsync(p => p.ProjectId == id);
 
-                // Update the properties of the existing project
+                //store the new values in the edit form
                 existingProject.Name = editProject.Project.Name;
                 existingProject.Description = editProject.Project.Description;
                 existingProject.Deadline = editProject.Project.Deadline;
                 existingProject.Budget = editProject.Project.Budget;
                 existingProject.Status = editProject.Project.Status;
-
-                // Save the changes
-                await _context.SaveChangesAsync();
-
 
                 // Update the project members with the selected members
                 if (selectedMembers != null && selectedMembers.Count > 0)
@@ -290,7 +284,7 @@ namespace TaskManagementSystem.Controllers
                 }
 
                 //update the projects table
-              //  _context.Projects.Update(editProject.Project);
+                _context.Projects.Update(editProject.Project);
                 await _context.SaveChangesAsync();
 
 
