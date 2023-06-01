@@ -204,42 +204,52 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind("ProjectId,Name,Description,Deadline,Budget,CreatedByUsername,Status, SelectedMembers, Tasks, project_members_id")] Project project, List<String> selectedMembers)
+        public async Task<IActionResult> Edit(int? id, ProjectsUsersVM editProject, List<String> selectedMembers)
         {
 
-            int id = project.ProjectId;
-
-            // Retrieve the existing project from the database
-            var existingProject = await _context.Projects
-                .Include(p => p.ProjectMembers)
-                
-                .FirstOrDefaultAsync(p => p.ProjectId == id);
+            //if the id is not found
+            if (id != editProject.Project.ProjectId)
+            {
+                return NotFound();
+            }
 
 
-            //// Initialize the navigational properties to ensure that ModelState is valid
-            //project.ProjectMembers = new List<ProjectMember>();
-            //project.Tasks = new List<Models.Task>();
+           
 
+            // Initialize the navigational properties to ensure that ModelState is valid
+            editProject.Project.ProjectMembers = new List<ProjectMember>();
+            editProject.Project.Tasks = new List<Models.Task>();
+            editProject.Users = _context.Users.ToList();
             //store the current logged in user and assign it to the CreatedByUsername and the navigational property
             var user = await _context.Users.SingleOrDefaultAsync(x => x.Username == User.Identity.Name);
-            project.CreatedByUsername = user.Username;
-            project.CreatedByUsernameNavigation = user;
+            editProject.Project.CreatedByUsername = user.Username;
+            editProject.Project.CreatedByUsernameNavigation = user;
 
             //clearing model state after the newely posted project object
             ModelState.Clear();
-            TryValidateModel(project);
+            TryValidateModel(editProject);
 
             //check if the model state is valid
             if (ModelState.IsValid)
             {
-              
 
-                //store the new values in the edit form
-                existingProject.Name = project.Name;
-                existingProject.Description = project.Description;
-                existingProject.Deadline = project.Deadline;
-                existingProject.Budget = project.Budget;
-                existingProject.Status = project.Status;
+                // Remove this line: _context.Projects.Update(editProject.Project);
+
+                // Retrieve the existing project from the database
+                var existingProject = await _context.Projects
+                    .Include(p => p.ProjectMembers)
+                    .FirstOrDefaultAsync(p => p.ProjectId == id);
+
+                // Update the properties of the existing project
+                existingProject.Name = editProject.Project.Name;
+                existingProject.Description = editProject.Project.Description;
+                existingProject.Deadline = editProject.Project.Deadline;
+                existingProject.Budget = editProject.Project.Budget;
+                existingProject.Status = editProject.Project.Status;
+
+                // Save the changes
+                await _context.SaveChangesAsync();
+
 
                 // Update the project members with the selected members
                 if (selectedMembers != null && selectedMembers.Count > 0)
@@ -272,7 +282,7 @@ namespace TaskManagementSystem.Controllers
                 }
 
                 //update the projects table
-                _context.Projects.Update(project);
+              //  _context.Projects.Update(editProject.Project);
                 await _context.SaveChangesAsync();
 
 
@@ -283,7 +293,7 @@ namespace TaskManagementSystem.Controllers
             {
                 var pviewModel = new ProjectsUsersVM
                 {
-                    Project = project,
+                    Project = editProject.Project,
                     Users = _context.Users
                 };
 
