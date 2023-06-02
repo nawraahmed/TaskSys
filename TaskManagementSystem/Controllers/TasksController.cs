@@ -112,7 +112,8 @@ namespace TaskManagementSystem.Controllers
             {
                 Task = new(),
                 Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId),
-                ProjectMembers = _context.ProjectMembers.Where(p=>p.ProjectId== projectId)
+                ProjectMembers = _context.ProjectMembers.Where(p=>p.ProjectId== projectId),
+                Document = new()
             };
 
             return View(tasksViewModel);
@@ -123,7 +124,7 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(TasksVM tasksVM)
+        public async Task<IActionResult> Create(TasksVM tasksVM, IFormFile postedFile)
         {
             // Extract the task from the view model
             Models.Task task = tasksVM.Task;
@@ -147,6 +148,8 @@ namespace TaskManagementSystem.Controllers
             // Set the task's AssignedToUsername to the selected project member's username
             task.AssignedToUsername = tasksVM.SelectedProjectMemberUsername;
 
+            
+            
             // Create a notification for the assigned user
             Notification notification = new Notification
             {
@@ -166,9 +169,41 @@ namespace TaskManagementSystem.Controllers
            
             if (ModelState.IsValid)
             {
+
+                //check if the user had uploaded a file
+                if (postedFile != null && postedFile.Length > 0)
+                {
+                    //create new document object, assign values to it
+                    Document doc = new Document();
+
+                    //set the properties
+                    doc.DocumentName = postedFile.Name;
+                    doc.Username = User.Identity.Name;
+                    doc.UploadDate = DateTime.Today;
+                    doc.DocumentType = postedFile.ContentType;
+
+
+                    //read the file data using memory stream
+                    using (MemoryStream mStream = new MemoryStream())
+                    {
+                        await postedFile.CopyToAsync(mStream);
+                        doc.BinaryData = mStream.ToArray();
+
+                    }
+
+                    //add the document to the context
+                    _context.Documents.Add(doc);
+                    await _context.SaveChangesAsync();
+
+                    // Assign the document ID to the task
+                    task.TaskDocument = doc.DocumentId;
+ 
+
+                }
                 // Add the task to the context and save changes
                 _context.Add(task);
                 await _context.SaveChangesAsync();
+                
                 // Redirect to the index action of the tasks controller, passing the projectId as a route value
                 return RedirectToAction(nameof(Index),new { projectId = task.ProjectId });
             }
