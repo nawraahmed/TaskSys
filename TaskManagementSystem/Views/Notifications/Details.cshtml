@@ -5,40 +5,31 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Details</h1>
+<div class="container">
+    <h1>Details</h1>
 
-<div>
-    <h4>Notification</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Message)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Message)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Type)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UsernameNavigation)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UsernameNavigation.Username)
-        </dd>
-    </dl>
-</div>
-<div>
-  @*  <a asp-action="Edit" asp-route-id="@Model?.NotificationId">Edit</a> *@
-@*    <a asp-action="Tasks" asp-controller="Tasks" asp-route-id="@Model." class="btn btn-primary">View Task Details</a>|*@
-    <a asp-action="Index">Back to List</a>
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">Notification</h4>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Message:</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Message)</dd>
+
+                <dt class="col-sm-3">Type:</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Type)</dd>
+
+                <dt class="col-sm-3">Status:</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Status)</dd>
+
+                <dt class="col-sm-3">Username:</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.UsernameNavigation.Username)</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-primary">Back to List</a>
+    </div>
 </div>
