@@ -5,7 +5,14 @@
 }
 
 
-
+@{
+    if (TempData["msg"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["msg"].ToString()
+        </div>
+    }
+}
 <ul class="nav nav-tabs" role="tablist">
     <li class="nav-item" role="presentation">
         <a class="nav-link @(Model.Tab == "alltasks" ? "active" : "")" href="@Url.Action("Index", new { projectId = Model.Project.ProjectId, tab = "alltasks" })" role="tab">All Tasks</a>
@@ -43,6 +50,7 @@
             </div>
         @if (Model.Project.CreatedByUsername == User.Identity.Name)
         {
+            <br />
             <p>
 
                 <a asp-action="Create" asp-route-projectId="@Model.Project.ProjectId" class="btn btn-primary">Create New Task</a>

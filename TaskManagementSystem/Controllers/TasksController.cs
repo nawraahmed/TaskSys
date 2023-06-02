@@ -206,7 +206,9 @@ namespace TaskManagementSystem.Controllers
                 // Add the task to the context and save changes
                 _context.Add(task);
                 await _context.SaveChangesAsync();
-                
+
+                TempData["msg"] = "New Task Assigned successfully!";
+
                 // Redirect to the index action of the tasks controller, passing the projectId as a route value
                 return RedirectToAction(nameof(Index),new { projectId = task.ProjectId });
             }
@@ -275,6 +277,7 @@ namespace TaskManagementSystem.Controllers
                     // Update the task in the context and save changes
                     _context.Update(task);
                     await _context.SaveChangesAsync();
+                    TempData["msg"] = "Task Updated successfully.";
 
                     // Retrieve the project manager for the corresponding project
                     var projectManager = await _context.Projects
@@ -363,6 +366,7 @@ namespace TaskManagementSystem.Controllers
             }
 
             await _context.SaveChangesAsync();
+            TempData["msg"] = "Task Deleted successfully!";
             return RedirectToAction(nameof(Index), new { projectId = task.ProjectId });
         }
 

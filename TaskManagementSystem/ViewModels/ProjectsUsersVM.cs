@@ -10,6 +10,6 @@ namespace TaskManagementSystem.ViewModels
 
 
 
-        public string Tab { get; set; }
+     
     }
 }
