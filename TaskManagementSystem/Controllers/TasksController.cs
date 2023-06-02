@@ -176,8 +176,11 @@ namespace TaskManagementSystem.Controllers
                     //create new document object, assign values to it
                     Document doc = new Document();
 
+                    // Get the actual name of the uploaded file
+                    string fileName = Path.GetFileName(postedFile.FileName);
+
                     //set the properties
-                    doc.DocumentName = postedFile.Name;
+                    doc.DocumentName = fileName;
                     doc.Username = User.Identity.Name;
                     doc.UploadDate = DateTime.Today;
                     doc.DocumentType = postedFile.ContentType;
