@@ -18,15 +18,33 @@
         </div>
     </div>
 </form>
+
+@functions {
+    string GetStatusColor(string status)
+    {
+        switch (status)
+        {
+            case "Completed":
+                return "green";
+            case "In Progress":
+                return "orange";
+            case "Pending":
+                return "gray";
+            case "Overdue":
+                return "red";
+            default:
+                return "black";
+        }
+    }
+}
+
 <table class="table">
     <thead>
         <tr>
             <th>
                Project Name
             </th>
-            <th>
-                Project Description
-            </th>
+            
             <th>
                 Project Deadline
             </th>
@@ -46,13 +64,11 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Name)
                 </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
+               
                 <td>
                     @Html.DisplayFor(modelItem => item.Deadline)
                 </td>
-                <td>
+                <td style="color: @GetStatusColor(item.Status)">
                     @Html.DisplayFor(modelItem => item.Status)
                 </td>
                 <td>

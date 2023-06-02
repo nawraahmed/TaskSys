@@ -82,8 +82,12 @@
 }
 
 .taskManagementNav {
-    background-color: #20575F;
+    background-color: black;
     color:white;
+}
+
+.nborderr {
+    border-color:#20575F;
 }
 
 *,
@@ -2506,6 +2510,7 @@ textarea.form-control-lg {
     .form-control-color.form-control-lg {
         height: calc(1.5em + 1rem + 2px);
     }
+    
 
 .form-select {
     display: block;
