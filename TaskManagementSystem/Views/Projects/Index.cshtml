@@ -19,6 +19,29 @@
     </div>
 </div>
 </form>
+<br />
+
+
+
+@functions {
+    string GetStatusColor(string status)
+    {
+        switch (status)
+        {
+            case "Completed":
+                return "green";
+            case "In Progress":
+                return "orange";
+            case "Pending":
+                return "gray";
+            case "Overdue":
+                return "red";
+            default:
+                return "black";
+        }
+    }
+}
+
 
 
 <table class="table">
@@ -27,9 +50,7 @@
             <th>
                Project Name
             </th>
-            <th>
-                Project Description
-            </th>
+            
             <th>
                 Project Deadline
             </th>
@@ -49,13 +70,11 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Name)
                 </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
+              
                 <td>
                     @Html.DisplayFor(modelItem => item.Deadline)
                 </td>
-                <td>
+                <td style="color: @GetStatusColor(item.Status)">
                     @Html.DisplayFor(modelItem => item.Status)
                 </td>
                 <td>
@@ -72,3 +91,50 @@
         }
     </tbody>
 </table>
+
+@*
+
+@functions {
+    string GetCardClass(string status)
+    {
+        switch (status)
+        {
+            case "Completed":
+                return "border-success";
+            case "In Progress":
+                return "border-warning";
+            case "Pending":
+                return "border-secondary";
+            case "Overdue":
+                return "border-danger";
+            default:
+                return string.Empty;
+        }
+    }
+}
+
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-lg-4">
+            <div class="card @(GetCardClass(item.Status)) mb-3">
+                <div class="card-header">Status: @Html.DisplayFor(modelItem => item.Status)</div>
+                <div class="card-body">
+                    <h4 class="card-title">@Html.DisplayFor(modelItem => item.Name)</h4>
+                    <p class="card-text">@Html.DisplayFor(modelItem => item.Description)</p>
+                    <td class="card-text">
+                        <a asp-controller="Tasks" asp-action="Index" asp-route-projectId="@item.ProjectId">View Tasks</a> |
+                        <a asp-controller="#" asp-action="Index" asp-route-id="@item.ProjectId">Dashboard</a> |
+                        <a asp-action="Details" asp-route-id="@item.ProjectId">Project Details</a> |
+                        <a asp-action="Edit" asp-route-id="@item.ProjectId">Edit Project</a> |
+                        <a asp-action="Delete" asp-route-id="@item.ProjectId">Delete Project</a>
+                    </td>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+*@
+
+

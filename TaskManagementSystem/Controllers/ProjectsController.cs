@@ -145,10 +145,13 @@ namespace TaskManagementSystem.Controllers
                 //if the List is not empty, insert to project members table using a loop
                 if (selectedMembers != null && selectedMembers.Count > 0)
                 {
+                    //add the current logged in user in the selectedMembers array
+                    selectedMembers.Add(User.Identity.Name);
 
                     //loop to insert a record in projectMemebr table for each member in the list
                     foreach (var memberName in selectedMembers)
                     {
+                        
 
                         //assign the values to a new project member 
                         var projectMember = new ProjectMember
@@ -269,6 +272,9 @@ namespace TaskManagementSystem.Controllers
                 // Update the project members with the selected members
                 if (selectedMembers != null)
                 {
+                    //add the current logged in user in the selectedMembers array
+                    selectedMembers.Add(User.Identity.Name);
+
                     var membersToAdd = selectedMembers.Except(existingProject.ProjectMembers.Select(m => m.Username)).ToList();
                     var membersToRemove = existingProject.ProjectMembers.Where(m => !selectedMembers.Contains(m.Username)).ToList();
 

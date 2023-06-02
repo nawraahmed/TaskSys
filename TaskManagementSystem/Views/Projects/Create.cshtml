@@ -55,10 +55,11 @@
                 {
                     var isChecked = user.Username == UserManager.GetUserName(User) ? "flexCheckChecked" : "";
                     var isDisabled = user.Username == UserManager.GetUserName(User) ? "disabled" : "";
+                    var checkedAttribute = user.Username == UserManager.GetUserName(User) ? "checked" : "";
 
                     <div class="form-check">
 
-                        <input class="form-check-input" for="flexCheckChecked" type="checkbox" id="@("user_" + user.Username) isChecked" value="@user.Username" name="SelectedMembers" @(user.Username == @UserManager.GetUserName(User) ? "checked" : "") @(isDisabled) />
+                        <input class="form-check-input" for="flexCheckChecked" type="checkbox" id="@("user_" + user.Username) @isChecked" value="@user.Username" name="SelectedMembers" @checkedAttribute @(isDisabled) />
                         <label class="form-check-label" for="@("user_" + user.Username)">@user.Username</label>
                         </div>
                 }
