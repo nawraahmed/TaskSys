@@ -8,8 +8,8 @@ namespace TaskManagementSystem.ViewModels
         public IEnumerable<User> Users { get; set; }
         public List<String> SelectedMembers { get; set; }
 
-      
 
-       
+
+        public string Tab { get; set; }
     }
 }

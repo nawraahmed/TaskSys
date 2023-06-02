@@ -5,136 +5,139 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>All Projects </h1>
+<h1>All Projects</h1>
 
 <p>
     <a asp-action="Create" class="btn btn-primary">Create New Project</a>
 </p>
 
 <form method="get" asp-controller="Projects" asp-action="Index" class="form-inline">
-<div class="input-group">
+    <div class="input-group">
         <input type="text" name="search" placeholder="Search projects..." class="form-control" value="@Context.Request.Query["search"].ToString()" />
-    <div class="input-group-append">
-        <button type="submit" class="btn btn-primary">Search</button>
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
     </div>
-</div>
 </form>
 <br />
 
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+        <a class="custom-link active nav-link" id="grid-tab" data-toggle="tab" href="#grid-content" role="tab" aria-controls="grid-content" aria-selected="true">Grid</a>
+    </li>
+    <li class="nav-item">
+        <a class="custom-link nav-link" id="cards-tab" data-toggle="tab" href="#cards-content" role="tab" aria-controls="cards-content" aria-selected="false">Cards</a>
+    </li>
+</ul>
 
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="grid-content" role="tabpanel" aria-labelledby="grid-tab">
+        @(Html
+            .Grid(Model)
+            .Build(columns =>
+            {
+                columns.Add(model => model.Name).Titled("Project Name");
+                columns.Add(model => model.Deadline).Titled("Deadline");
+                columns.Add(model => model.Status).Titled("Status");
+                columns.Add(model => model.CreatedByUsernameNavigation.Username).Titled("Project Manager");
+                columns.Add().RenderedAs(model => Html.ActionLink("Edit", "Edit", new { id = model.ProjectId })).Filterable(false);
+                columns.Add().RenderedAs(model => Html.ActionLink("Details", "Details", new { id = model.ProjectId })).Filterable(false);
+                columns.Add().RenderedAs(model => Html.ActionLink("Delete", "Delete", new { id = model.ProjectId })).Filterable(false);
 
-@functions {
-    string GetStatusColor(string status)
-    {
-        switch (status)
-        {
-            case "Completed":
-                return "green";
-            case "In Progress":
-                return "orange";
-            case "Pending":
-                return "gray";
-            case "Overdue":
-                return "red";
-            default:
-                return "black";
+                columns.Add()
+                .Encoded(false)
+                .RenderedAs(model => Html.ActionLink("View Tasks", "Index", "Tasks", new { projectId = model.ProjectId }, null))
+                .Filterable(false);
+
+                columns.Add()
+                .Encoded(false)
+                .RenderedAs(model => Html.ActionLink("Dashboard", "Index", null, new { id = model.ProjectId }, null))
+                .Filterable(false);
+            })
+            .Using(GridFilterMode.Header)
+            .Empty("No data found")
+            .Filterable()
+            .Sortable()
+            .Css("table table-responsive table-striped table-bordered")
+            .Pageable(pager =>
+            {
+                pager.RowsPerPage = 10;
+            }))
+    </div>
+    <div class="tab-pane fade" id="cards-content" role="tabpanel" aria-labelledby="cards-tab">
+        @{
+            string GetCardClass(string status)
+            {
+                switch (status)
+                {
+                    case "Completed":
+                        return "border-success";
+                    case "In Progress":
+                        return "border-warning";
+                    case "Pending":
+                        return "border-secondary";
+                    case "Overdue":
+                        return "border-danger";
+                    default:
+                        return string.Empty;
+                }
+            }
         }
-    }
-}
 
-
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-               Project Name
-            </th>
-            
-            <th>
-                Project Deadline
-            </th>
-            <th>
-                Project Status
-            </th>
-            <th>
-                Project Manager
-            </th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-              
-                <td>
-                    @Html.DisplayFor(modelItem => item.Deadline)
-                </td>
-                <td style="color: @GetStatusColor(item.Status)">
-                    @Html.DisplayFor(modelItem => item.Status)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CreatedByUsernameNavigation.Username)
-                </td>
-                <td>
-                    <a asp-controller="Tasks" asp-action="Index" asp-route-projectId="@item.ProjectId">View Tasks</a> |
-                    <a asp-controller="#" asp-action="Index" asp-route-id="@item.ProjectId">Dashbaord</a> |
-                    <a asp-action="Details" asp-route-id="@item.ProjectId">Project Details</a> |
-                    <a asp-action="Edit" asp-route-id="@item.ProjectId">Edit Project</a> |
-                    <a asp-action="Delete" asp-route-id="@item.ProjectId">Delete Project</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-@*
-
-@functions {
-    string GetCardClass(string status)
-    {
-        switch (status)
-        {
-            case "Completed":
-                return "border-success";
-            case "In Progress":
-                return "border-warning";
-            case "Pending":
-                return "border-secondary";
-            case "Overdue":
-                return "border-danger";
-            default:
-                return string.Empty;
-        }
-    }
-}
-
-
-<div class="row">
-    @foreach (var item in Model)
-    {
-        <div class="col-lg-4">
-            <div class="card @(GetCardClass(item.Status)) mb-3">
-                <div class="card-header">Status: @Html.DisplayFor(modelItem => item.Status)</div>
-                <div class="card-body">
-                    <h4 class="card-title">@Html.DisplayFor(modelItem => item.Name)</h4>
-                    <p class="card-text">@Html.DisplayFor(modelItem => item.Description)</p>
-                    <td class="card-text">
-                        <a asp-controller="Tasks" asp-action="Index" asp-route-projectId="@item.ProjectId">View Tasks</a> |
-                        <a asp-controller="#" asp-action="Index" asp-route-id="@item.ProjectId">Dashboard</a> |
-                        <a asp-action="Details" asp-route-id="@item.ProjectId">Project Details</a> |
-                        <a asp-action="Edit" asp-route-id="@item.ProjectId">Edit Project</a> |
-                        <a asp-action="Delete" asp-route-id="@item.ProjectId">Delete Project</a>
-                    </td>
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-4">
+                    <div class="card @(GetCardClass(item.Status)) mb-3">
+                        <div class="card-header">Status: @Html.DisplayFor(modelItem => item.Status)</div>
+                        <div class="card-body">
+                            <h4 class="card-title">@Html.DisplayFor(modelItem => item.Name)</h4>
+                            <p class="card-text">@Html.DisplayFor(modelItem => item.Description)</p>
+                            <td class="card-text">
+                                <a asp-controller="Tasks" asp-action="Index" asp-route-projectId="@item.ProjectId">View Tasks</a> |
+                                <a asp-controller="#" asp-action="Index" asp-route-id="@item.ProjectId">Dashboard</a> |
+                                <a asp-action="Details" asp-route-id="@item.ProjectId">Project Details</a> |
+                                <a asp-action="Edit" asp-route-id="@item.ProjectId">Edit Project</a> |
+                                <a asp-action="Delete" asp-route-id="@item.ProjectId">Delete Project</a>
+                            </td>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            }
         </div>
-    }
+    </div>
 </div>
-*@
 
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tabs = document.querySelectorAll('.custom-link');
+            var tabContents = document.querySelectorAll('.tab-pane');
 
+            tabs.forEach(function (tab) {
+                // Exclude header links from the event listener
+                if (!tab.classList.contains('header-link')) {
+                    tab.addEventListener('click', function (event) {
+                        event.preventDefault();
+
+                        tabs.forEach(function (t) {
+                            t.classList.remove('active');
+                        });
+                        this.classList.add('active');
+
+                        var target = this.getAttribute('href');
+                        tabContents.forEach(function (content) {
+                            content.classList.remove('show', 'active');
+                        });
+                        document.querySelector(target).classList.add('show', 'active');
+                    });
+                }
+            });
+        });
+    </script>
+    <script>
+        document.querySelectorAll(".mvc-grid").forEach(function (element) {
+            new MvcGrid(element);
+        });
+    </script>
+}
