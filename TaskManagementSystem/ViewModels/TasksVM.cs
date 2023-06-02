@@ -12,5 +12,7 @@ namespace TaskManagementSystem.ViewModels
 
         public string Tab { get; set; }
 
+        public Document Document { get; set; }
+
     }
 }
