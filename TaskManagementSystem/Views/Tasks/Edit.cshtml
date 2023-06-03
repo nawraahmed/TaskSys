@@ -11,7 +11,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="@Model.Task.TaskId" />
             <div class="form-group">
@@ -57,14 +57,16 @@
                  <label asp-for="@Model.Task.TaskDocumentNavigation" class="control-label"></label>
                 <span asp-validation-for="@Model.Task.TaskDocumentNavigation" class="text-danger"></span>
                 @{
-                    if (@Model.Task.TaskDocumentNavigation != null)
+                    //check if there is a document first
+                    if (Model.Task.TaskDocumentNavigation != null)
                     {
-                        var doc = @Model.Task.TaskDocumentNavigation;
+                        //retrieve it from the viewModel
+                        var doc = Model.Task.TaskDocumentNavigation;
 
                         //check if the document is a picture, make it embeded
                         if (doc.DocumentType == "image/jpeg" || doc.DocumentType == "image/png")
                         {
-                            var base64 = Convert.ToBase64String(@Model.Task.TaskDocumentNavigation.BinaryData);
+                            var base64 = Convert.ToBase64String(Model.Task.TaskDocumentNavigation.BinaryData);
                             var imgSrc = String.Format("data:image;base64,{0}", base64);
 
                             <img src="@imgSrc" style="width:100%; height:100%" />
@@ -79,6 +81,16 @@
 
                         }
 
+                        // Display delete document button
+                        
+                        <div>
+                            <a asp-action="DeleteDocument" asp-route-id="@Model.Task.TaskDocumentNavigation.DocumentId">Delete Document</a>
+                        </div>
+
+
+                    }else{
+                        //if there is no document, show an upload box
+                        <input asp-for="@Model.Document" class="form-control" type="file" id="formFile" name="Document">
 
                     }
 
