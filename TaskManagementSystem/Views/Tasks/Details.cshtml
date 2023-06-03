@@ -87,12 +87,20 @@
             var commentsList = Model.TaskComments.ToList();
             var comment = commentsList[i];
             <div>
-                <p><strong> @(i + 1):</strong> @comment.Username </p>
+                <p><strong> Username :</strong> @comment.Username </p>
                 <p>@comment.Comment</p>
+                <p>
+                    @if (User.Identity.Name == comment.Username || User.IsInRole("Admin"))
+                    {
+                        <a href="@Url.Action("Edit", "TaskComments", new { id = comment.CommentId })">Edit</a>
+            <a href="@Url.Action("Delete", "TaskComments", new { id = comment.CommentId })" > Delete </a >
+                   }
+                </p>
             </div>
             <hr />
         }
     }
+
 
 
 

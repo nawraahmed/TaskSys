@@ -1,0 +1,25 @@
+﻿.fn-body {
+    background-color: #f5f0ed;
+}
+.fn-nav {
+    background-color: #3d5361;
+}
+.fn-primarybtn {
+    background-color: #f5f0ed;
+}
+.custom-link {
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-bottom-color: transparent;
+    border-radius: 0.25rem 0.25rem 0 0;
+    color: #212529;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+    .custom-link.active {
+        background-color: #ffffff;
+        border-color: #dee2e6 #dee2e6 #ffffff;
+        color: #007bff;
+    }

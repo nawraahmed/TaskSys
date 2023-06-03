@@ -5,7 +5,14 @@
 }
 
 
-
+@{
+    if (TempData["msg"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["msg"].ToString()
+        </div>
+    }
+}
 <ul class="nav nav-tabs" role="tablist">
     <li class="nav-item" role="presentation">
         <a class="nav-link @(Model.Tab == "alltasks" ? "active" : "")" href="@Url.Action("Index", new { projectId = Model.Project.ProjectId, tab = "alltasks" })" role="tab">All Tasks</a>
@@ -43,12 +50,13 @@
             </div>
         @if (Model.Project.CreatedByUsername == User.Identity.Name)
         {
+            <br />
             <p>
 
                 <a asp-action="Create" asp-route-projectId="@Model.Project.ProjectId" class="btn btn-primary">Create New Task</a>
             </p> 
             }
-            <table class="table">
+@*            <table class="table">
                 <thead>
                     <tr>
 
@@ -113,7 +121,49 @@
                         </tr>
                     }
                 </tbody>
-            </table>
+            </table>*@
+        @(
+            Html
+            .Grid(Model.Project.Tasks)
+            .Build(columns =>
+            {
+                columns.Add(model => model.Name).Titled("Task Name");
+                columns.Add(model => model.Deadline).Titled("Deadline");
+                columns.Add(model => model.Status).Titled("Status");
+                columns.Add(model => model.AssignedToUsernameNavigation.Username).Titled("Assigned To:");
+
+                columns.Add().RenderedAs(model => Html.ActionLink("Edit", "Edit", new
+                {
+                    id =
+                model.TaskId
+                })).Filterable(false);
+                columns.Add().RenderedAs(model => Html.ActionLink("Details", "Details", new
+                {
+                    id =
+                model.TaskId
+                })).Filterable(false);
+                columns.Add().RenderedAs(model => Html.ActionLink("Delete", "Delete", new
+                {
+                    id =
+                model.TaskId
+                })).Filterable(false);
+              
+            })
+            .Using(GridFilterMode.Header)
+            .Empty("No data found")
+            .Filterable()
+            .Sortable()
+            .Css("table table-responsive table-striped table-bordered")
+            .Pageable(pager =>
+            {
+                pager.RowsPerPage = 10;
+            })
+            )
+        @section Scripts {
+            <script>
+                document.querySelectorAll(".mvc-grid").forEach(element => new MvcGrid(element));
+            </script>
+        }
 
         </div>
         <div class="tab-pane fade" id="alltasks" role="tabpanel">
@@ -142,7 +192,7 @@
     <a asp-action="Create" asp-route-projectId="@Model.Project.ProjectId" class="btn btn-primary">Create New Task</a>
 </p>
         }
-<table class="table">
+@*<table class="table">
     <thead>
         <tr>
 
@@ -208,6 +258,45 @@
         }
     </tbody>
 </table>
+*@
 
+        @(
+            Html
+            .Grid(Model.Project.Tasks)
+            .Build(columns =>
+            {
+                columns.Add(model => model.Name).Titled("Task Name");
+                columns.Add(model => model.Deadline).Titled("Deadline");
+                columns.Add(model => model.Status).Titled("Status");
+                columns.Add(model => model.AssignedToUsernameNavigation.Username).Titled("Assigned To:");
+
+                columns.Add().RenderedAs(model => Html.ActionLink("Edit", "Edit", new
+                {
+                    id =
+                model.TaskId
+                })).Filterable(false);
+                columns.Add().RenderedAs(model => Html.ActionLink("Details", "Details", new
+                {
+                    id =
+                model.TaskId
+                })).Filterable(false);
+                columns.Add().RenderedAs(model => Html.ActionLink("Delete", "Delete", new
+                {
+                    id =
+                model.TaskId
+                })).Filterable(false);
+
+            })
+            .Using(GridFilterMode.Header)
+            .Empty("No data found")
+            .Filterable()
+            .Sortable()
+            .Css("table table-responsive table-striped table-bordered")
+            .Pageable(pager =>
+            {
+                pager.RowsPerPage = 10;
+            })
+            )
+     
         </div>
     
