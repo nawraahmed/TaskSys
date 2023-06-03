@@ -46,6 +46,59 @@
     }
 }
 
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="grid-content" role="tabpanel" aria-labelledby="grid-tab">
+        @(Html
+            .Grid(Model)
+            .Build(columns =>
+            {
+                columns.Add(model => model.Name).Titled("Project Name");
+                columns.Add(model => model.Deadline).Titled("Deadline");
+                columns.Add(model => model.Status).Titled("Status");
+                columns.Add(model => model.CreatedByUsernameNavigation.Username).Titled("Project Manager");
+                columns.Add().RenderedAs(model => Html.ActionLink("Edit", "Edit", new { id = model.ProjectId })).Filterable(false);
+                columns.Add().RenderedAs(model => Html.ActionLink("Details", "Details", new { id = model.ProjectId })).Filterable(false);
+                columns.Add().RenderedAs(model => Html.ActionLink("Delete", "Delete", new { id = model.ProjectId })).Filterable(false);
+
+                columns.Add()
+                .Encoded(false)
+                .RenderedAs(model => Html.ActionLink("View Tasks", "Index", "Tasks", new { projectId = model.ProjectId }, null))
+                .Filterable(false);
+
+                columns.Add()
+                .Encoded(false)
+                .RenderedAs(model => Html.ActionLink("Dashboard", "Dashboard", null, new { id = model.ProjectId }, null))
+                .Filterable(false);
+            })
+            .Using(GridFilterMode.Header)
+            .Empty("No data found")
+            .Filterable()
+            .Sortable()
+            .Css("table table-responsive table-striped table-bordered")
+            .Pageable(pager =>
+            {
+                pager.RowsPerPage = 10;
+            }))
+    </div>
+    <div class="tab-pane fade" id="cards-content" role="tabpanel" aria-labelledby="cards-tab">
+        @{
+            string GetCardClass(string status)
+            {
+                switch (status)
+                {
+                    case "Completed":
+                        return "border-success";
+                    case "In Progress":
+                        return "border-warning";
+                    case "Pending":
+                        return "border-secondary";
+                    case "Overdue":
+                        return "border-danger";
+                    default:
+                        return string.Empty;
+                }
+            }
+        }
 
         <div class="row">
             @foreach (var item in Model)
@@ -58,7 +111,7 @@
                             <p class="card-text">@Html.DisplayFor(modelItem => item.Description)</p>
                             <td class="card-text">
                                 <a asp-controller="Tasks" asp-action="Index" asp-route-projectId="@item.ProjectId">View Tasks</a> |
-                                <a asp-controller="#" asp-action="Index" asp-route-id="@item.ProjectId">Dashboard</a> |
+                                <a asp-action="Dashboard" asp-route-projectId="@item.ProjectId">Dashboard</a> |
                                 <a asp-action="Details" asp-route-id="@item.ProjectId">Project Details</a> |
                                 <a asp-action="Edit" asp-route-id="@item.ProjectId">Edit Project</a> |
                                 <a asp-action="Delete" asp-route-id="@item.ProjectId">Delete Project</a>
