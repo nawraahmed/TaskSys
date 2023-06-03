@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using TaskManagementSystem.Areas.Identity.Data;
 using TaskManagementSystem.Models;
 using TaskManagementSystem.ViewModels;
+using TaskManagementSystem.Controllers;
 
 namespace TaskManagementSystem.Controllers
 {
@@ -172,6 +173,8 @@ namespace TaskManagementSystem.Controllers
                     }
 
                     await _context.SaveChangesAsync();
+                    //add a log for peoject creation
+                    LogsController.CreateLog(_context, "web", "Projects/Create", User.Identity.Name, "New Project Created", null, null);
                 }
 
 
@@ -307,7 +310,8 @@ namespace TaskManagementSystem.Controllers
                 //update the projects table
                 _context.Projects.Update(existingProject);
                 await _context.SaveChangesAsync();
-
+                //add a log for peoject updating
+                LogsController.CreateLog(_context, "web", "Projects/Edit", User.Identity.Name, "A Project has been updated", null, null);
 
                 TempData["UpdateSuccess"] = "Project Updated Successfully";
                 return RedirectToAction("Index");
@@ -373,6 +377,9 @@ namespace TaskManagementSystem.Controllers
                 foreach (var task in projectTasks)
                 {
                     _context.Tasks.Remove(task);
+
+                    //add a log for task removal
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task was deleted", null, null);
                 }
 
 
@@ -386,10 +393,15 @@ namespace TaskManagementSystem.Controllers
                 foreach (var projectMember in projectMembers)
                 {
                     _context.ProjectMembers.Remove(projectMember);
+                    //add a log for peoject members removal
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A project member was removed", null, null);
                 }
 
                 //then remove the project itself
                 _context.Projects.Remove(project);
+
+                //add a log for peoject removal
+                LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A project was deleted", null, null);
             }
 
             await _context.SaveChangesAsync();
