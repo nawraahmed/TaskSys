@@ -54,17 +54,17 @@
 
             <div class="form-group">
 
-                 <label asp-for="@Model.Task.TaskDocument" class="control-label"></label>
-            <span asp-validation-for="@Model.Task.TaskDocument" class="text-danger"></span>
+                 <label asp-for="@Model.Task.TaskDocumentNavigation" class="control-label"></label>
+                <span asp-validation-for="@Model.Task.TaskDocumentNavigation" class="text-danger"></span>
                 @{
-                    if (Model.TaskDocumentNavigation != null)
+                    if (@Model.Task.TaskDocumentNavigation != null)
                     {
-                        var doc = Model.TaskDocumentNavigation;
+                        var doc = @Model.Task.TaskDocumentNavigation;
 
                         //check if the document is a picture, make it embeded
                         if (doc.DocumentType == "image/jpeg" || doc.DocumentType == "image/png")
                         {
-                            var base64 = Convert.ToBase64String(Model.TaskDocumentNavigation.BinaryData);
+                            var base64 = Convert.ToBase64String(@Model.Task.TaskDocumentNavigation.BinaryData);
                             var imgSrc = String.Format("data:image;base64,{0}", base64);
 
                             <img src="@imgSrc" style="width:100%; height:100%" />
