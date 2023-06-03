@@ -232,7 +232,10 @@ namespace TaskManagementSystem.Controllers
                 return NotFound();
             }
 
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _context.Tasks
+                .Include(t => t.TaskDocumentNavigation)
+                .FirstOrDefaultAsync(m => m.TaskId == id);
+
             if (task == null)
             {
                 return NotFound();
@@ -259,7 +262,7 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(TasksVM tasksVM)
+        public async Task<IActionResult> Edit(TasksVM tasksVM, IFormFile? Document)
         {
             // Extract the task from the view model
             Models.Task task = tasksVM.Task;
@@ -290,6 +293,54 @@ namespace TaskManagementSystem.Controllers
             {
                 try
                 {
+                    // Check if a document already exists to handle deletion
+                    if (tasksVM.Document != null && tasksVM.Document.BinaryData.Length > 0)
+                    {
+                        // Delete the existing document, if any
+                        if (task.TaskDocumentNavigation != null)
+                        {
+                            // Remove the document from the documents table first
+                            // Then remove the document from the tasks table as well
+                            _context.Documents.Remove(task.TaskDocumentNavigation);
+                            await _context.SaveChangesAsync();
+                        }
+
+
+                    }
+                    // Check if a new document is being uploaded
+                    if (Document != null)
+                    {
+
+                        string fileName = Path.GetFileName(Document.FileName);
+
+                        // Create a new document entity
+                        var document = new Document
+                        {
+                            DocumentName = fileName,
+                            Username = User.Identity.Name,
+                            UploadDate = DateTime.Today,
+                            DocumentType = Document.ContentType
+
+                        };
+
+                        //read the file data using memory stream
+                        using (MemoryStream mStream = new MemoryStream())
+                        {
+                            await Document.CopyToAsync(mStream);
+                            document.BinaryData = mStream.ToArray();
+
+                        }
+
+                        //add the document to the context
+                        _context.Documents.Add(document);
+                        await _context.SaveChangesAsync();
+
+                        // Assign the document ID to the task
+                        task.TaskDocument = document.DocumentId;
+
+                        
+                    }
+
                     // Update the task in the context and save changes
                     _context.Update(task);
                     await _context.SaveChangesAsync();
@@ -318,6 +369,14 @@ namespace TaskManagementSystem.Controllers
                         await _context.SaveChangesAsync();
 
                     }
+
+
+
+
+
+
+
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -390,6 +449,77 @@ namespace TaskManagementSystem.Controllers
         {
             return (_context.Tasks?.Any(e => e.TaskId == id)).GetValueOrDefault();
         }
+
+
+
+
+
+        // GET: Tasks/DeleteDocument/5
+        public async Task<IActionResult> DeleteDocument(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound(); // No ID specified, return Not Found
+            }
+
+            var document = await _context.Documents.FindAsync(id);
+
+            if (document == null)
+            {
+                return NotFound(); // Document not found, return Not Found
+            }
+
+            // Get the first task associated with the document
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.TaskDocument == document.DocumentId);
+
+            if (task == null)
+            {
+                return NotFound(); // Task not found, return Not Found
+            }
+
+            // Pass both the document and task ID to the view
+            var viewModel = new DeleteDocumentViewModel
+            {
+                Document = document,
+                TaskId = task.TaskId
+            };
+
+            return View(viewModel); // Render the view with the document and task ID
+        }
+
+
+
+        // POST: Tasks/DeleteDocumentConfirmed/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteDocumentConfirmed(int id)
+        {
+            var document = await _context.Documents.FindAsync(id);
+
+            if (document == null)
+            {
+                return NotFound();
+            }
+
+            // Get the associated tasks and set the task_document value to null
+            var tasks = await _context.Tasks.Where(t => t.TaskDocument == id).ToListAsync();
+            foreach (var task in tasks)
+            {
+                task.TaskDocument = null;
+                _context.Tasks.Update(task); // Update the task in the context
+            }
+
+            // Delete the document from the database
+            _context.Documents.Remove(document);
+            await _context.SaveChangesAsync();
+
+            // Redirect to the Edit action of TasksController with the ID of the first associated task
+
+                return RedirectToAction("Edit", "Tasks", new { id = tasks[0].TaskId });
+            
+        }
+
+
 
 
 

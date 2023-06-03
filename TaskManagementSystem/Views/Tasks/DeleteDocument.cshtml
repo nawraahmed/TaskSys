@@ -1,0 +1,30 @@
+﻿
+@{
+    ViewData["Title"] = "DeleteDocument";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>DeleteDocument</h1>
+
+<h3>Are you sure you want to delete this document?</h3>
+<div>
+    <h4>Document Details</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Document ID:</dt>
+        <dd class="col-sm-10">@Model.Document.DocumentId</dd>
+
+        <dt class="col-sm-2">Document Name:</dt>
+        <dd class="col-sm-10">@Model.Document.DocumentName</dd>
+
+        <!-- Add more document details here if needed -->
+    </dl>
+
+    <form asp-action="DeleteDocumentConfirmed" asp-route-id="@Model.Document.DocumentId" method="post">
+        <div class="form-group">
+            <input type="submit" value="Delete" class="btn btn-danger" />
+            <a asp-action="Edit" asp-route-id="@Model.TaskId" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+
+</div>
