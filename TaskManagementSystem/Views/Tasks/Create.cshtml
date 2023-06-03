@@ -39,11 +39,7 @@
                 <input asp-for="@Model.Task.Deadline" class="form-control" />
                 <span asp-validation-for="@Model.Task.Deadline" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="@Model.Task.ProjectId" class="control-label"></label>
-                <input asp-for="@Model.Task.ProjectId" class="form-control" value="@Model.Project.ProjectId" readonly>
-                <input type="hidden" name="ProjectId" value="@Model.Project.ProjectId" />
-            </div>
+            
             <div class="form-group">
                 <label asp-for="@Model.Task.AssignedToUsername" class="control-label"></label>
                 <select asp-for="@Model.Task.AssignedToUsername" class="form-control">

@@ -4,8 +4,8 @@
 .fn-nav {
     background-color: #3d5361;
 }
-.fn-primarybtn {
-    background-color: #f5f0ed;
+fn-primarybtn {
+    background-color: #3d5361 !important;
 }
 .custom-link {
     padding: 0.5rem 1rem;
