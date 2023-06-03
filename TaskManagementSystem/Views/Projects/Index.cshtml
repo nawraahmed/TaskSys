@@ -21,67 +21,7 @@
 </form>
 <br />
 
-<ul class="nav nav-tabs" role="tablist">
-    <li class="nav-item">
-        <a class="custom-link active nav-link" id="grid-tab" data-toggle="tab" href="#grid-content" role="tab" aria-controls="grid-content" aria-selected="true">Grid</a>
-    </li>
-    <li class="nav-item">
-        <a class="custom-link nav-link" id="cards-tab" data-toggle="tab" href="#cards-content" role="tab" aria-controls="cards-content" aria-selected="false">Cards</a>
-    </li>
-</ul>
 
-<div class="tab-content">
-    <div class="tab-pane fade show active" id="grid-content" role="tabpanel" aria-labelledby="grid-tab">
-        @(Html
-            .Grid(Model)
-            .Build(columns =>
-            {
-                columns.Add(model => model.Name).Titled("Project Name");
-                columns.Add(model => model.Deadline).Titled("Deadline");
-                columns.Add(model => model.Status).Titled("Status");
-                columns.Add(model => model.CreatedByUsernameNavigation.Username).Titled("Project Manager");
-                columns.Add().RenderedAs(model => Html.ActionLink("Edit", "Edit", new { id = model.ProjectId })).Filterable(false);
-                columns.Add().RenderedAs(model => Html.ActionLink("Details", "Details", new { id = model.ProjectId })).Filterable(false);
-                columns.Add().RenderedAs(model => Html.ActionLink("Delete", "Delete", new { id = model.ProjectId })).Filterable(false);
-
-                columns.Add()
-                .Encoded(false)
-                .RenderedAs(model => Html.ActionLink("View Tasks", "Index", "Tasks", new { projectId = model.ProjectId }, null))
-                .Filterable(false);
-
-                columns.Add()
-                .Encoded(false)
-                .RenderedAs(model => Html.ActionLink("Dashboard", "Index", null, new { id = model.ProjectId }, null))
-                .Filterable(false);
-            })
-            .Using(GridFilterMode.Header)
-            .Empty("No data found")
-            .Filterable()
-            .Sortable()
-            .Css("table table-responsive table-striped table-bordered")
-            .Pageable(pager =>
-            {
-                pager.RowsPerPage = 10;
-            }))
-    </div>
-    <div class="tab-pane fade" id="cards-content" role="tabpanel" aria-labelledby="cards-tab">
-        @{
-            string GetCardClass(string status)
-            {
-                switch (status)
-                {
-                    case "Completed":
-                        return "border-success";
-                    case "In Progress":
-                        return "border-warning";
-                    case "Pending":
-                        return "border-secondary";
-                    case "Overdue":
-                        return "border-danger";
-                    default:
-                        return string.Empty;
-                }
-            }
         }
 
         <div class="row">
