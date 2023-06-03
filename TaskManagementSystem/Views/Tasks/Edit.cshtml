@@ -54,8 +54,8 @@
 
             <div class="form-group">
 
-                 <label asp-for="@Model.Task.TaskDocument" class="control-label"></label>
-            <span asp-validation-for="@Model.Task.TaskDocument" class="text-danger"></span>
+                 <label asp-for="@Model.Task.TaskDocumentNavigation" class="control-label"></label>
+                <span asp-validation-for="@Model.Task.TaskDocumentNavigation" class="text-danger"></span>
                 @{
                     //check if there is a document first
                     if (Model.Task.TaskDocumentNavigation != null)
