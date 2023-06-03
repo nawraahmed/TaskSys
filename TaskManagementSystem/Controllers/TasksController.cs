@@ -239,12 +239,19 @@ namespace TaskManagementSystem.Controllers
             }
 
             var projectId = task.ProjectId;
-         
+
+            var tasksViewModel = new TasksVM
+            {
+                Task = task,
+                Project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId),
+                ProjectMembers = _context.ProjectMembers.Where(p => p.ProjectId == projectId),
+                Document = new()
+            };
 
             ViewData["AssignedToUsername"] = new SelectList(_context.ProjectMembers.Where(x=>x.ProjectId==projectId), "Username", "Username", task.AssignedToUsername);
-            ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectId", task.ProjectId);
+           // ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectId", task.ProjectId);
             ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId", task.TaskDocument);
-            return View(task);
+        return(View(tasksViewModel));
         }
 
         // POST: Tasks/Edit/5
@@ -252,20 +259,29 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit( [Bind("TaskId,Name,Description,Status,Deadline,ProjectId,AssignedToUsername,TaskDocument")] Models.Task task)
+        public async Task<IActionResult> Edit(TasksVM tasksVM)
         {
+            // Extract the task from the view model
+            Models.Task task = tasksVM.Task;
+
             // Retrieve the ProjectId 
             int projectId = task.ProjectId;
 
+            // Retrieve the project using the projectId
+            task.Project = _context.Projects.Include(p => p.CreatedByUsernameNavigation).FirstOrDefault(x => x.ProjectId == projectId);
+
+            // Populate the Project property of the view model using the projectId
+            tasksVM.Project = _context.Projects.Include(p => p.CreatedByUsernameNavigation).FirstOrDefault(p => p.ProjectId == projectId);
 
 
-            // Populate the Project property using the projectId
-            task.Project = _context.Projects.Include(p => p.CreatedByUsernameNavigation).FirstOrDefault(p => p.ProjectId == projectId);
+            // Retrieve the selected project member's username
+            tasksVM.SelectedProjectMemberUsername = task.AssignedToUsername;
 
+            // Set the task's AssignedToUsername to the selected project member's username
+            task.AssignedToUsernameNavigation = _context.Users.FirstOrDefault(x => x.Username == tasksVM.SelectedProjectMemberUsername);
 
-            // Retrieve the user entity based on the AssignedToUsername of the task
-            task.AssignedToUsernameNavigation = _context.Users.FirstOrDefault(x => x.Username == task.AssignedToUsername);
-
+            // Set the task's AssignedToUsername to the selected project member's username
+            task.AssignedToUsername = tasksVM.SelectedProjectMemberUsername;
 
 
             ModelState.Clear();
