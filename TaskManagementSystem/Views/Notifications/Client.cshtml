@@ -1,0 +1,91 @@
+﻿@{
+    ViewData["Title"] = "Client";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Client</h1>
+
+<div>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h4>Notifications</h4>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <table class="table table-hover" id="tblNotifications">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Notification</th>
+                                <th>Date / Time</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+</div>
+
+@section Scripts {
+
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+
+    <script>
+
+            "use strict";
+
+            //define connection to hub
+            var connection = new signalR.HubConnectionBuilder().withUrl("/NotificationsHub").build();
+
+            //start the hub connection
+            $(function () {
+                connection.start().then(function () {
+                    alert('Connected to NotificationsHub');
+                    InvokeNotifications(); //to load existing list of notifications
+                }).catch(function (err) {
+                    return console.error(err.toString());
+                });
+            });
+            //initially, we need to show the list of all notifications
+            //So we will use our action method that returns Json
+            function InvokeNotifications() {
+                var url = "../Notifications/GetAll";
+                $.get(url, function(nData)
+                {
+                    BindNotificationsToGrid(nData);
+                }
+                );
+        };
+
+            //the server will call this will updated notification list on every database change
+            connection.on("getUpdatedNotifications", function (notifications) {
+                BindNotificationsToGrid(notifications);
+            });
+
+        function BindNotificationsToGrid(notifications) {
+            var tbody = $('#tblNotifications tbody');
+
+            $.each(notifications, function (index, notification) {
+                var tr = $('<tr/>');
+                tr.append(`<td>${(index + 1)}</td>`);
+                tr.append(`<td>${notification.message}</td>`);
+                tr.append(`<td>${notification.status}</td>`); // Add the date/time field
+                tbody.append(tr);
+            });
+        }
+
+
+
+    </script>
+
+
+}
