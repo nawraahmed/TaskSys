@@ -1,0 +1,108 @@
+﻿
+@{
+    ViewData["Title"] = "dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="page-header">
+            <h2>Project Dashboard</h2>
+            <h4>Project Name: @ViewBag.ProjectName</h4>
+            <hr />
+        </div>
+
+    </div>
+
+</div> <br />
+
+
+
+<div class="row">
+    <div class="col-lg-6"> 
+    <h4>Tasks Status:</h4>
+    <h5>Tasks Completed: @ViewBag.CompletedTasksCount</h5>
+    <h5>Tasks Remaining: @ViewBag.RemainingTasksCount</h5> <br />
+
+        <h4>Best Project Member:</h4>
+        @if (!string.IsNullOrEmpty(ViewBag.BestMember))
+        {
+            <h5>Best project member: @ViewBag.BestMember</h5>
+        }
+        else
+        {
+            <h5>No project member has completed any tasks yet.</h5>
+        }
+
+        <br />
+
+        <h5>Project Progress:</h5>
+        <div class="progress">
+
+            <div class="progress-bar  progress-bar-striped progress-bar-animated" role="progressbar" style="width: @ViewBag.CompletionPercentage%" aria-valuenow="@ViewBag.CompletionPercentage" aria-valuemin="0" aria-valuemax="100">
+                @ViewBag.CompletionPercentage%
+            </div>
+        </div>
+    </div>
+
+
+
+<div class="col-lg-4">
+    
+
+<div>
+            <canvas id="tasksChart" style="width: 100%; height: 400px;"></canvas>
+</div>
+
+
+
+
+    </div>
+</div>
+
+
+
+@section scripts {
+    <script>
+        // Retrieve the data from ViewBag
+        var members = @Html.Raw(Json.Serialize(ViewBag.Members));
+        var taskCounts = @Html.Raw(Json.Serialize(ViewBag.TaskCounts));
+
+        // Create a chart using Chart.js
+        var ctx = document.getElementById('tasksChart').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: members,
+                datasets: [{
+                    label: 'Tasks Completed',
+                    data: taskCounts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)', // Customize the background color
+                    borderColor: 'rgba(54, 162, 235, 1)', // Customize the border color
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                animation: {
+                    duration: 1000, // Set the animation duration in milliseconds
+                    easing: 'easeInOut' // Set the easing function for the animation
+                },
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stepSize: 1, // Customize the step size for y-axis
+                    }
+                }
+            }
+        });
+    </script>
+}
+
+
+
+

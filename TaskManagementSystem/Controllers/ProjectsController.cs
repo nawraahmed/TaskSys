@@ -32,6 +32,11 @@ namespace TaskManagementSystem.Controllers
         }
 
 
+        
+
+       
+
+
 
 
 
@@ -395,6 +400,76 @@ namespace TaskManagementSystem.Controllers
         {
             return (_context.Projects?.Any(e => e.ProjectId == id)).GetValueOrDefault();
         }
+
+
+        public IActionResult Dashboard(int projectId)
+        {
+            try
+            {
+                // Get the project name based on the project ID
+                string projectName = _context.Projects
+                    .Where(p => p.ProjectId == projectId)
+                    .Select(p => p.Name)
+                    .FirstOrDefault();
+
+                
+                
+
+                // Calculate the number of completed tasks for the project
+                int completedTasksCount = _context.Tasks
+                    .Count(t => t.ProjectId == projectId && t.Status == "Completed");
+
+                // Calculate the number of remaining tasks for the project
+                int remainingTasksCount = _context.Tasks
+                    .Count(t => t.ProjectId == projectId && t.Status != "Completed");
+
+                // Find the best project member based on the number of tasks he completed
+                var bestMember = _context.Tasks
+                    .Where(t => t.ProjectId == projectId && t.Status == "Completed")
+                    .GroupBy(t => t.AssignedToUsername)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.Key)
+                    .FirstOrDefault();
+
+                // Calculate the completion percentage
+                double completionPercentage = 0;
+                if (completedTasksCount + remainingTasksCount > 0)
+                {
+                    completionPercentage = (double)completedTasksCount / (completedTasksCount + remainingTasksCount) * 100;
+                }
+
+                // Fetch the data for the chart
+                var memberUsernames = _context.Tasks
+                    .Where(t => t.ProjectId == projectId && t.Status == "Completed")
+                    .GroupBy(t => t.AssignedToUsername)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                var taskCounts = _context.Tasks
+                    .Where(t => t.ProjectId == projectId && t.Status == "Completed")
+                    .GroupBy(t => t.AssignedToUsername)
+                    .Select(g => g.Count())
+                    .ToList();
+
+
+                // Pass the data to the view
+                ViewBag.ProjectName = projectName;
+                ViewBag.ProjectId = projectId;
+                ViewBag.CompletedTasksCount = completedTasksCount;
+                ViewBag.RemainingTasksCount = remainingTasksCount;
+                ViewBag.BestMember = bestMember;
+                ViewBag.CompletionPercentage = completionPercentage.ToString("F0"); // Round the percentage to 0 decimal places
+                ViewBag.Members = memberUsernames;
+                ViewBag.TaskCounts = taskCounts;
+
+                return View(ViewBag);
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
 
     }
 

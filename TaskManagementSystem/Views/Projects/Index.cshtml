@@ -51,7 +51,7 @@
 
                 columns.Add()
                 .Encoded(false)
-                .RenderedAs(model => Html.ActionLink("Dashboard", "Index", null, new { id = model.ProjectId }, null))
+                .RenderedAs(model => Html.ActionLink("Dashboard", "Dashboard", null, new { id = model.ProjectId }, null))
                 .Filterable(false);
             })
             .Using(GridFilterMode.Header)
@@ -95,7 +95,7 @@
                             <p class="card-text">@Html.DisplayFor(modelItem => item.Description)</p>
                             <td class="card-text">
                                 <a asp-controller="Tasks" asp-action="Index" asp-route-projectId="@item.ProjectId">View Tasks</a> |
-                                <a asp-controller="#" asp-action="Index" asp-route-id="@item.ProjectId">Dashboard</a> |
+                                <a asp-action="Dashboard" asp-route-projectId="@item.ProjectId">Dashboard</a> |
                                 <a asp-action="Details" asp-route-id="@item.ProjectId">Project Details</a> |
                                 <a asp-action="Edit" asp-route-id="@item.ProjectId">Edit Project</a> |
                                 <a asp-action="Delete" asp-route-id="@item.ProjectId">Delete Project</a>
