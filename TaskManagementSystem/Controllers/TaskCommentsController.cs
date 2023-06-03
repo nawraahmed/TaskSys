@@ -128,7 +128,7 @@ namespace TaskManagementSystem.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index), new { taskid = taskComment.TaskId });
+                return RedirectToAction(nameof(Details), "Tasks", new { id = taskComment.TaskId });
             }
             ViewData["TaskId"] = taskComment.TaskId;
             ViewData["Username"] = new SelectList(_context.Users, "Username", "Username", taskComment.Username);
@@ -171,7 +171,7 @@ namespace TaskManagementSystem.Controllers
             }
             
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index), new { taskid = taskComment.TaskId });
+            return RedirectToAction(nameof(Details), "Tasks", new { id = taskComment.TaskId });
         }
 
         private bool TaskCommentExists(int id)
