@@ -152,21 +152,6 @@ namespace TaskManagementSystem.Controllers
             // Set the task's AssignedToUsername to the selected project member's username
             task.AssignedToUsername = tasksVM.SelectedProjectMemberUsername;
 
-            // Create a notification for the assigned user
-
-            var message = $"You have been assigned a new task : {task.Name} in {task.Project.Name} Project by manager {task.Project.CreatedByUsername}.";
-            var type = "New Task Assignment";
-            var status = "Unread";
-            var username = task.AssignedToUsername;
-            await NotificationsController.SendNotification(message, type, status, username, _context);
-            var notifications = new List<Notification> {
-    new Notification { Message = message , Status = status}
-};
-            if (_hubcontext != null)
-            {
-                await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
-            }
-
 
             //clear the modelstate and validate it
             ModelState.Clear();
@@ -213,6 +198,23 @@ namespace TaskManagementSystem.Controllers
                 await _context.SaveChangesAsync();
 
                 TempData["msg"] = "New Task Assigned successfully!";
+
+
+                // Create a notification for the assigned user
+
+                var message = $"You have been assigned a new task : {task.Name} in {task.Project.Name} Project by manager {task.Project.CreatedByUsername}.";
+                var type = "New Task Assignment";
+                var status = "Unread";
+                var username = task.AssignedToUsername;
+                await NotificationsController.SendNotification(message, type, status, username, _context);
+                var notifications = new List<Notification> {
+    new Notification { Message = message , Status = status}
+};
+                if (_hubcontext != null)
+                {
+                    await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
+                }
+
 
                 // Redirect to the index action of the tasks controller, passing the projectId as a route value
                 return RedirectToAction(nameof(Index),new { projectId = task.ProjectId });
@@ -443,17 +445,21 @@ namespace TaskManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Tasks == null)
-            {
-                return Problem("Entity set 'TaskAllocationDBContext.Tasks'  is null.");
-            }
             var task = await _context.Tasks.FindAsync(id);
-            if (task != null)
+
+            if (task == null)
             {
-                _context.Tasks.Remove(task);
+                return NotFound();
             }
 
+            // Delete the associated records in the referencing table
+            var associatedRecords = await _context.TaskComments.Where(r => r.TaskId == id).ToListAsync();
+            _context.TaskComments.RemoveRange(associatedRecords);
+
+            // Delete the task from the database
+            _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
+
             TempData["msg"] = "Task Deleted successfully!";
             return RedirectToAction(nameof(Index), new { projectId = task.ProjectId });
         }

@@ -16,85 +16,68 @@
             <input type="hidden" asp-for="@Model.Task.TaskId" />
             <div class="form-group">
                 <label asp-for="@Model.Task.Name" class="control-label"></label>
-                <input asp-for="@Model.Task.Name" class="form-control" />
+                <input asp-for="@Model.Task.Name" class="form-control" readonly="@(!string.Equals(Model.Project.CreatedByUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))" />
                 <span asp-validation-for="@Model.Task.Name" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="@Model.Task.Description" class="control-label"></label>
-                <input asp-for="@Model.Task.Description" class="form-control" />
+                <input asp-for="@Model.Task.Description" class="form-control" readonly="@(!string.Equals(Model.Project.CreatedByUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))" />
                 <span asp-validation-for="@Model.Task.Description" class="text-danger"></span>
             </div>
-          <div class="form-group">
+            <div class="form-group">
                 <label asp-for="@Model.Task.Status" class="control-label"></label>
                 <select asp-for="@Model.Task.Status" class="form-control">
-        <option value="Pending">Pending</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Completed">Completed</option>
-        <option value="Overdue">Overdue</option>
-    </select>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Overdue">Overdue</option>
+                </select>
                 <span asp-validation-for="@Model.Task.Status" class="text-danger"></span>
-</div>
-
+            </div>
             <div class="form-group">
                 <label asp-for="@Model.Task.Deadline" class="control-label"></label>
-                <input asp-for="@Model.Task.Deadline" class="form-control" />
+                <input asp-for="@Model.Task.Deadline" class="form-control" readonly="@(!string.Equals(Model.Project.CreatedByUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))" />
                 <span asp-validation-for="@Model.Task.Deadline" class="text-danger"></span>
             </div>
-          
-
+            <div class="form-group">
+                <label asp-for="@Model.Task.ProjectId" class="control-label"></label>
+                <input asp-for="@Model.Task.ProjectId" class="form-control" readonly value="@Model.Task.ProjectId" />
+                <span asp-validation-for="@Model.Task.ProjectId" class="text-danger"></span>
+            </div>
             <div class="form-group">
                 <label asp-for="@Model.Task.AssignedToUsername" class="control-label"></label>
-                <select asp-for="@Model.Task.AssignedToUsername" class="form-control" asp-items="ViewBag.AssignedToUsername"></select>
+                <select asp-for="@Model.Task.AssignedToUsername" class="form-control" asp-items="ViewBag.AssignedToUsername" readonly="@(!string.Equals(Model.Project.CreatedByUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))"></select>
                 <span asp-validation-for="@Model.Task.AssignedToUsername" class="text-danger"></span>
             </div>
-
             <div class="form-group">
-
-                 <label asp-for="@Model.Task.TaskDocumentNavigation" class="control-label"></label>
+                <label asp-for="@Model.Task.TaskDocumentNavigation" class="control-label"></label>
                 <span asp-validation-for="@Model.Task.TaskDocumentNavigation" class="text-danger"></span>
                 @{
-
-                    //check if there is a document first
                     if (Model.Task.TaskDocumentNavigation != null)
                     {
-                        //retrieve it from the viewModel
                         var doc = Model.Task.TaskDocumentNavigation;
-
-                        //check if the document is a picture, make it embeded
                         if (doc.DocumentType == "image/jpeg" || doc.DocumentType == "image/png")
                         {
                             var base64 = Convert.ToBase64String(Model.Task.TaskDocumentNavigation.BinaryData);
                             var imgSrc = String.Format("data:image;base64,{0}", base64);
-
                             <img src="@imgSrc" style="width:100%; height:100%" />
                         }
                         else
                         {
-                            //if it's a file, make it downloadable
                             var base64 = Convert.ToBase64String(doc.BinaryData);
                             var dataUri = $"data:{doc.DocumentType};base64,{base64}";
-
                             <a href="@dataUri" download="@doc.DocumentName">Download</a>
-
                         }
-
-                        // Display delete document button
-                        
                         <div>
                             <a asp-action="DeleteDocument" asp-route-id="@Model.Task.TaskDocumentNavigation.DocumentId">Delete Document</a>
                         </div>
-
-
-                    }else{
-                        //if there is no document, show an upload box
-                        <input asp-for="@Model.Document" class="form-control" type="file" id="formFile" name="Document">
-
                     }
-
+                    else
+                    {
+                        <input asp-for="@Model.Document" class="form-control" type="file" id="formFile" name="Document" readonly="@(!string.Equals(Model.Project.CreatedByUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))">
+                    }
                 }
-
             </div>
-
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
@@ -106,3 +89,11 @@
     <a asp-action="Index" asp-route-projectId="@Model.Task.ProjectId">Back to List</a>
 </div>
 
+@if (!string.Equals(Model.Project.CreatedByUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+{
+    <script>
+        $(document).ready(function () {
+            $("input[type='text'], textarea, select").prop("readonly", true);
+        });
+    </script>
+}
