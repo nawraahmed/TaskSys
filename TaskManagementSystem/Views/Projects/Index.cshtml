@@ -51,7 +51,7 @@
 
                 columns.Add()
                 .Encoded(false)
-                .RenderedAs(model => Html.ActionLink("Dashboard", "Dashboard", null, new { id = model.ProjectId }, null))
+                .RenderedAs(model => Html.ActionLink("Dashboard", "Dashboard", null, new { projectId = model.ProjectId }, null))
                 .Filterable(false);
             })
             .Using(GridFilterMode.Header)
