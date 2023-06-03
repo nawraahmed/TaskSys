@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using TaskManagementSystem.Models;
 
 namespace TaskManagementSystem.Controllers
@@ -45,8 +46,16 @@ namespace TaskManagementSystem.Controllers
         }
 
 
-        public static void CreateLog(TaskAllocationDBContext context, string source, string type, string username, string message, string originalValue, string currentValue)
+        public static void CreateLog(TaskAllocationDBContext context, string source, string type, string username, string message, object originalValue, object currentValue)
         {
+            var settings = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+            // Serialize the original and current values into JSON format
+            string originalJson = JsonConvert.SerializeObject(originalValue, settings);
+            string currentJson = JsonConvert.SerializeObject(currentValue, settings);
+
             // Create a new log object
             var log = new Log
             {
@@ -55,14 +64,19 @@ namespace TaskManagementSystem.Controllers
                 Username = username,
                 Date = DateTime.Now,
                 Message = message,
-                OriginalValue = originalValue,
-                CurrentValue = currentValue
+                OriginalValue = originalJson,
+                CurrentValue = currentJson
             };
 
             // Add the log to the context and save changes
             context.Logs.Add(log);
             context.SaveChanges();
         }
+
+
+        
+       
+
 
 
 
