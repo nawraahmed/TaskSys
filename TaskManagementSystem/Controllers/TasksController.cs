@@ -79,7 +79,17 @@ namespace TaskManagementSystem.Controllers
                         .ToListAsync();
                 }
             }
+            // Update task statuses based on the deadline
+            foreach (var task in tasksVM.Project.Tasks)
+            {
+                if (task.Status != "Completed" && task.Deadline < DateTime.Now.Date)
+                {
+                    task.Status = "Overdue";
+                    _context.Tasks.Update(task);
+                }
+            }
 
+            await _context.SaveChangesAsync();
             return View(tasksVM);
         }
 

@@ -37,9 +37,9 @@ namespace TaskManagementSystem.Controllers
         }
 
 
-        
 
-       
+
+
 
 
 
@@ -48,18 +48,35 @@ namespace TaskManagementSystem.Controllers
         // GET: Projects
         public async Task<IActionResult> Index(string search)
         {
-            //check if either the logged in user is a project member or the project is created by him!
-            IQueryable<Project> taskAllocationDBContext = _context.Projects
-             .Include(p => p.CreatedByUsernameNavigation)
-             .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
+            List<Project> projects = await _context.Projects
+                .Include(p => p.CreatedByUsernameNavigation)
+                .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name)
+                .ToListAsync();
 
-
-            if (!string.IsNullOrEmpty(search))
+            foreach (var project in projects)
             {
-                taskAllocationDBContext = taskAllocationDBContext.Where(p => p.Name.Contains(search));
+                if (project.Status != "Completed" && project.Deadline < DateTime.Now.Date)
+                {
+                    project.Status = "Overdue";
+                }
 
+                // Load tasks into memory
+                var tasks = await _context.Tasks
+                    .Where(t => t.ProjectId == project.ProjectId)
+                    .ToListAsync();
+
+                if (tasks.Count > 0 && tasks.All(t => t.Status == "Completed"))
+                {
+                    project.Status = "Completed";
+                }
+
+
+                _context.Projects.Update(project);
             }
-            return View(await taskAllocationDBContext.ToListAsync());
+
+            await _context.SaveChangesAsync();
+
+            return View(projects);
         }
 
         public async Task<IActionResult> MyProjectsIndex(string search)
