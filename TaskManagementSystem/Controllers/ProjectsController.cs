@@ -449,9 +449,27 @@ namespace TaskManagementSystem.Controllers
             {
 
 
-                //remove the documents
 
-                //remove the project tasks
+
+                // Remove the task comments associated with the project
+                var projectTaskComments = await _context.TaskComments
+                    .Include(tc => tc.Task)
+                    .Where(tc => tc.Task.ProjectId == id)
+                    .ToListAsync();
+
+                foreach (var comment in projectTaskComments)
+                {
+                    _context.TaskComments.Remove(comment);
+
+                    //add a log for task comment removal
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task comment was deleted", null, null);
+                }
+
+
+
+
+
+
                 // Retrieve the project tasks associated with the project
                 var projectTasks = await _context.Tasks
                     .Where(t => t.ProjectId == id)
@@ -466,8 +484,21 @@ namespace TaskManagementSystem.Controllers
                     LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task was deleted", null, null);
                 }
 
+                // Iterate over the project tasks
+                foreach (var task in projectTasks)
+                {
+                    // Retrieve the task documents associated with each task
+                    var taskDocuments = await _context.Documents
+                        .Where(d => d.Tasks.Contains(task))
+                        .ToListAsync();
 
-                //remove the project members
+                    // Remove the task documents
+                    _context.Documents.RemoveRange(taskDocuments);
+
+                    // Add a log for task document removal
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "Task documents were deleted", null, null);
+                }
+
                 // Retrieve the project members associated with the project
                 var projectMembers = await _context.ProjectMembers
                     .Where(pm => pm.ProjectId == id)
@@ -509,8 +540,8 @@ namespace TaskManagementSystem.Controllers
                     .Select(p => p.Name)
                     .FirstOrDefault();
 
-                
-                
+
+
 
                 // Calculate the number of completed tasks for the project
                 int completedTasksCount = _context.Tasks
