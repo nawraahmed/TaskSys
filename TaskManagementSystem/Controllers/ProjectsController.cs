@@ -195,7 +195,8 @@ namespace TaskManagementSystem.Controllers
                     TempData["msg"] = "Project Added Successfully";
 
                     //add a log for peoject creation
-                    LogsController.CreateLog(_context, "web", "Projects/Create", User.Identity.Name, "New Project Created", null, null);
+                    LogsController.CreateLog(_context, "web", "Projects/Create", User.Identity.Name, "New Project Created", null, project);
+
 
                 }
 
@@ -342,7 +343,7 @@ namespace TaskManagementSystem.Controllers
                 _context.Projects.Update(existingProject);
                 await _context.SaveChangesAsync();
                 //add a log for peoject updating
-                LogsController.CreateLog(_context, "web", "Projects/Edit", User.Identity.Name, "A Project has been updated", null, null);
+                LogsController.CreateLog(_context, "web", "Projects/Edit", User.Identity.Name, "A Project has been edited", existingProject.Name, existingProject);
 
                 TempData["msg"] = "Project Updated Successfully";
 
@@ -445,7 +446,7 @@ namespace TaskManagementSystem.Controllers
                     _context.TaskComments.Remove(comment);
 
                     //add a log for task comment removal
-                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task comment was deleted", null, null);
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task comment was deleted", comment, null);
                 }
 
 
@@ -464,7 +465,7 @@ namespace TaskManagementSystem.Controllers
                     _context.Tasks.Remove(task);
 
                     //add a log for task removal
-                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task was deleted", null, null);
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task was deleted", task, null);
                 }
 
                 // Iterate over the project tasks
@@ -479,7 +480,7 @@ namespace TaskManagementSystem.Controllers
                     _context.Documents.RemoveRange(taskDocuments);
 
                     // Add a log for task document removal
-                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "Task documents were deleted", null, null);
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "Task documents were deleted", taskDocuments, null);
                 }
 
                 // Retrieve the project members associated with the project
