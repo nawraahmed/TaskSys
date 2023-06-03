@@ -3,6 +3,7 @@ using TaskManagementSystem.Models;
 using Microsoft.AspNetCore.Identity;
 using TaskManagementSystem.Data;
 using TaskManagementSystem.Areas.Identity.Data;
+using SignalR.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 //check check
@@ -21,6 +22,9 @@ builder.Services.AddDefaultIdentity<IdentityUsers>()
     .AddRoles<IdentityRole>() // Add this line to register RoleManager<IdentityRole>
     .AddEntityFrameworkStores<IdentityContext>();
 
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<NotificationsHub>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -34,6 +38,7 @@ app.UseRouting();
 app.UseAuthentication();;
 
 app.UseAuthorization();
+app.MapHub<NotificationsHub>("/NotificationsHub");
 
 app.MapControllerRoute(
     name: "default",

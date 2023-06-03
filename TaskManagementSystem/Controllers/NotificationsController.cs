@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using SignalR.Hubs;
 using TaskManagementSystem.Models;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -13,10 +15,12 @@ namespace TaskManagementSystem.Controllers
     public class NotificationsController : Controller
     {
         private readonly TaskAllocationDBContext _context;
+        private readonly NotificationsHub _hubcontext;
 
-        public NotificationsController(TaskAllocationDBContext context)
+        public NotificationsController(TaskAllocationDBContext context, NotificationsHub hubcontext)
         {
             _context = context;
+            _hubcontext = hubcontext;
         }
 
         // GET: Notifications
@@ -173,5 +177,33 @@ namespace TaskManagementSystem.Controllers
         {
           return (_context.Notifications?.Any(e => e.NotificationId == id)).GetValueOrDefault();
         }
+
+        public async Task<IActionResult> Client()
+        {
+            ViewData["Notifications"] = _context.Notifications.Where(n => n.Username == User.Identity.Name).ToList();
+            return View();
+        }
+        public async Task<IActionResult> GetAll()
+        {
+            return Json(_context.Notifications.Where(n=>n.Username==User.Identity.Name).ToList());
+        }
+        public async System.Threading.Tasks.Task NotificationBroadcast()
+        {
+            await _hubcontext.NotificationsHubBroadcast(_context.Notifications.ToList());
+        }
+
+        public static async System.Threading.Tasks.Task SendNotification(String message,string type,string status,string username, TaskAllocationDBContext context) {
+            var newNotification = new Notification
+            {
+                Message = message,
+                Type = type,
+                Status = status,
+                Username = username
+            };
+
+            context.Add(newNotification);
+            await context.SaveChangesAsync();
+        }
+
     }
 }
