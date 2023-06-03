@@ -11,16 +11,20 @@
     @foreach (var item in Model)
     {
         <div class="col-md-4 mb-4">
-            <div class="card @(item.Status == "Read" ? "border-success" : "border-warning")">
-                <div class="card-body">
-                    <h5 class="card-subtitle mb-2 text-muted"> @item.Type</h5>
-                    <p class="card-text">
-                        <span class="@(item.Status == "Read" ? "text-success" : "text-warning")">Status: @item.Status</span>
-                    </p>
-                    <a asp-action="Details" asp-route-id="@item.NotificationId" class="btn btn-primary">Read Details</a>
-                </div>
-            </div>
+   <div class="card mb-3">
+    <div class="card-header">
+        <span class="font-weight-bold @(item.Status == "Read" ? "text-success" : "text-warning")">Status: @Html.DisplayFor(modelItem => item.Status)</span>
+    </div>
+    <div class="card-body">
+        <h4 class="card-title">@item.Type</h4>
+        <p class="card-text">Notification Date: @item.Notification_Date</p>
+        <a asp-action="Details" asp-route-id="@item.NotificationId" class="btn btn-primary">Read Details</a>
+    </div>
+</div>
+
         </div>
+
+
     }
 </div>
 

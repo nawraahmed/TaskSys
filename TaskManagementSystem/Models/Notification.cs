@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace TaskManagementSystem.Models
 {
@@ -32,5 +33,11 @@ namespace TaskManagementSystem.Models
         [ForeignKey("Username")]
         [InverseProperty("Notifications")]
         public virtual User UsernameNavigation { get; set; } = null!;
+
+        [Column("notification_date", TypeName = "datetime")]
+        public DateTime Notification_Date { get; set; } = DateTime.Now;
+
+
+
     }
 }

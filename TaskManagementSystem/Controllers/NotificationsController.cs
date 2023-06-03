@@ -22,7 +22,11 @@ namespace TaskManagementSystem.Controllers
         // GET: Notifications
         public async Task<IActionResult> Index()
         {
-            var taskAllocationDBContext = _context.Notifications.Include(n => n.UsernameNavigation).Include(n=>n.UsernameNavigation.Projects).Where(n=>n.Username==User.Identity.Name);
+            var taskAllocationDBContext = _context.Notifications
+                .Include(n => n.UsernameNavigation)
+                .Include(n => n.UsernameNavigation.Projects)
+                .Where(n => n.Username == User.Identity.Name)
+                .OrderByDescending(n => n.Notification_Date); 
             return View(await taskAllocationDBContext.ToListAsync());
         }
 
