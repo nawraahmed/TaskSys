@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using SignalR.Hubs;
 using TaskManagementSystem.Areas.Identity.Data;
 using TaskManagementSystem.Models;
 using TaskManagementSystem.ViewModels;
@@ -15,11 +17,13 @@ namespace TaskManagementSystem.Controllers
     public class ProjectsController : Controller
     {
         private readonly TaskAllocationDBContext _context;
+        private readonly IHubContext<NotificationsHub> _hubcontext;
 
 
-        public ProjectsController(TaskAllocationDBContext context)
+        public ProjectsController(TaskAllocationDBContext context, IHubContext<NotificationsHub> hubcontext)
         {
             _context = context;
+            _hubcontext = hubcontext;
 
         }
 
@@ -169,9 +173,24 @@ namespace TaskManagementSystem.Controllers
                         //adding a row for each member
                         _context.ProjectMembers.Add(projectMember);
 
+                        //create notification
+                        var message = $"You have been assigned to a new project : {project.Name} by manager {project.CreatedByUsername}.";
+                        var type = "New Project Assignment";
+                        var status = "Unread";
+                        var username = projectMember.Username;
+                        await NotificationsController.SendNotification(message, type, status, username, _context);
+                        var notifications = new List<Notification> {
+    new Notification { Message = message , Status = status}
+};
+                        if (_hubcontext != null)
+                        {
+                            await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
+                        }
+
                     }
 
                     await _context.SaveChangesAsync();
+                    TempData["msg"] = "Project Added Successfully";
                 }
 
 
@@ -304,12 +323,57 @@ namespace TaskManagementSystem.Controllers
                 }
 
 
+                // Check if the status has changed
+                bool statusChanged = false;
+
+                var originalProject = _context.Projects.AsNoTracking().FirstOrDefault(t => t.ProjectId == existingProject.ProjectId);
+                if (originalProject != null && originalProject.Status != existingProject.Status)
+                {
+                    statusChanged = true;
+                }
+
                 //update the projects table
                 _context.Projects.Update(existingProject);
                 await _context.SaveChangesAsync();
 
 
-                TempData["UpdateSuccess"] = "Project Updated Successfully";
+                TempData["msg"] = "Project Updated Successfully";
+
+
+
+                if (statusChanged)
+                {
+                    // Retrieve the project manager for the corresponding project
+                    var projectManager = await _context.Projects
+                        .Include(p => p.CreatedByUsernameNavigation)
+                        .Where(p => p.ProjectId == existingProject.ProjectId)
+                        .Select(p => p.CreatedByUsernameNavigation)
+                        .FirstOrDefaultAsync();
+
+                    if (projectManager != null)
+                    {
+                        // Create a new notification for the project manager
+
+                        var message = $"Project {existingProject.Name} status updated to {existingProject.Status}.";
+                        var type = "Project Status Updated";
+                        var status = "Unread";
+                        var username = projectManager.Username;
+                        await NotificationsController.SendNotification(message, type, status, username, _context);
+                        var notifications = new List<Notification> {
+    new Notification { Message = message , Status = status}
+};
+                        if (_hubcontext != null)
+                        {
+                            await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
+                        }
+
+
+                    }
+                }
+
+
+
+
                 return RedirectToAction("Index");
             }
             else
@@ -393,6 +457,7 @@ namespace TaskManagementSystem.Controllers
             }
 
             await _context.SaveChangesAsync();
+            TempData["msg"] = "Project Deleted Successfully";
             return RedirectToAction(nameof(Index));
         }
 

@@ -71,7 +71,7 @@ namespace TaskManagementSystem.Controllers
             {
                 _context.Add(taskComment);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index), new {taskid = taskComment.TaskId});
+                return RedirectToAction(nameof(Details), "Tasks",new {id = taskComment.TaskId});
             }
             ViewData["TaskId"] = taskComment.TaskId;
             ViewData["Username"] = new SelectList(_context.Users, "Username", "Username", taskComment.Username);

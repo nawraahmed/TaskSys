@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using SignalR.Hubs;
 using TaskManagementSystem.Models;
 using TaskManagementSystem.ViewModels;
 
@@ -13,10 +15,12 @@ namespace TaskManagementSystem.Controllers
     public class TasksController : Controller
     {
         private readonly TaskAllocationDBContext _context;
+        private readonly IHubContext<NotificationsHub> _hubcontext;
 
-        public TasksController(TaskAllocationDBContext context)
+        public TasksController(TaskAllocationDBContext context, IHubContext<NotificationsHub> hubcontext)
         {
             _context = context;
+            _hubcontext = hubcontext;
         }
 
         // GET: Tasks
@@ -148,19 +152,20 @@ namespace TaskManagementSystem.Controllers
             // Set the task's AssignedToUsername to the selected project member's username
             task.AssignedToUsername = tasksVM.SelectedProjectMemberUsername;
 
-            
-            
             // Create a notification for the assigned user
-            Notification notification = new Notification
-            {
-                Message = $"You have been assigned a new task : {task.Name} in {task.Project.Name} Project by manager {task.Project.CreatedByUsername}.",
-                Type = "New Task Assignment",
-                Status = "Unread",
-                Username = task.AssignedToUsername
-            };
 
-            // Add the notification to the context
-            _context.Notifications.Add(notification);
+            var message = $"You have been assigned a new task : {task.Name} in {task.Project.Name} Project by manager {task.Project.CreatedByUsername}.";
+            var type = "New Task Assignment";
+            var status = "Unread";
+            var username = task.AssignedToUsername;
+            await NotificationsController.SendNotification(message, type, status, username, _context);
+            var notifications = new List<Notification> {
+    new Notification { Message = message , Status = status}
+};
+            if (_hubcontext != null)
+            {
+                await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
+            }
 
 
             //clear the modelstate and validate it
@@ -341,43 +346,51 @@ namespace TaskManagementSystem.Controllers
                         
                     }
 
-                    // Update the task in the context and save changes
-                    _context.Update(task);
-                    await _context.SaveChangesAsync();
-                    TempData["msg"] = "Task Updated successfully.";
+                    // Check if the status has changed
+                    bool statusChanged = false;
 
-                    // Retrieve the project manager for the corresponding project
-                    var projectManager = await _context.Projects
-                        .Include(p => p.CreatedByUsernameNavigation)
-                        .Where(p => p.ProjectId == projectId)
-                        .Select(p => p.CreatedByUsernameNavigation)
-                        .FirstOrDefaultAsync();
-
-                    if (projectManager != null)
+                    var originalTask = _context.Tasks.AsNoTracking().FirstOrDefault(t => t.TaskId == task.TaskId);
+                    if (originalTask != null && originalTask.Status != task.Status)
                     {
-                        // Create a new notification for the project manager
-                        var newNotification = new Notification
-                        {
-                            Message = $"Task {task.Name} status updated to {task.Status} by project member {task.AssignedToUsername}",
-                            Type = "Task Status Update",
-                            Status = "Unread",
-                            Username = projectManager.Username
-                        };
-
-                        // Add the new notification to the context and save changes
-                        _context.Notifications.Add(newNotification);
-                        await _context.SaveChangesAsync();
-
+                        statusChanged = true;
                     }
 
+                    // Update the task in the context
+                    _context.Update(task);
+                    await _context.SaveChangesAsync();
+
+                    TempData["msg"] = "Task Updated successfully.";
+
+                    if (statusChanged)
+                    {
+                        // Retrieve the project manager for the corresponding project
+                        var projectManager = await _context.Projects
+                            .Include(p => p.CreatedByUsernameNavigation)
+                            .Where(p => p.ProjectId == projectId)
+                            .Select(p => p.CreatedByUsernameNavigation)
+                            .FirstOrDefaultAsync();
+
+                        if (projectManager != null)
+                        {
+                            // Create a new notification for the project manager
+
+                            var message = $"Task {task.Name} status updated to {task.Status} by project member {task.AssignedToUsername}";
+                            var type = "Task Status Update";
+                            var status = "Unread";
+                            var username = projectManager.Username;
+                            await NotificationsController.SendNotification(message, type, status, username, _context);
+                            var notifications = new List<Notification> {
+    new Notification { Message = message , Status = status}
+};
+                            if (_hubcontext != null)
+                            {
+                                await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
+                            }
 
 
-
-
-
-
-
-                }
+                        }
+                    }
+                    }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!TaskExists(task.TaskId))
