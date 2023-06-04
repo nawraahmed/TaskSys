@@ -501,6 +501,7 @@ namespace TaskManagementSystem.Controllers
 
             if (task == null)
             {
+                LogsController.CreateLogExceptions(_context, User.Identity.Name, "Tasks/Delete", "Task was not found");
                 return NotFound();
             }
 
@@ -550,6 +551,7 @@ namespace TaskManagementSystem.Controllers
 
             if (task == null)
             {
+                LogsController.CreateLogExceptions(_context, User.Identity.Name, "Tasks/DeleteDocument", "Task was not found");
                 return NotFound(); // Task not found, return Not Found
             }
 

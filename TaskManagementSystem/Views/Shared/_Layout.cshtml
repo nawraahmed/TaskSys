@@ -39,12 +39,12 @@
                             </li>
 
 
-                           @* @if (User.IsInRole("Admin"))
-                            {*@
+                            @if (User.IsInRole("Admin"))
+                            {
                                 <li class="nav-item">
                                     <a class="nav-link text-white" asp-area="" asp-controller="Logs" asp-action="Index">Adminstartion</a>
                                 </li>
-                          @*  }*@
+                            }
 
 
                             <li class="nav-item">
