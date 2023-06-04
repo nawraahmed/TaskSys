@@ -188,7 +188,9 @@ namespace TaskManagementSystem.Controllers
         }
         public async Task<IActionResult> GetAll()
         {
-            return Json(_context.Notifications.Where(n=>n.Username==User.Identity.Name).ToList());
+
+            var notifications = _context.Notifications.Where(n => n.Username == User.Identity.Name).OrderByDescending(n=>n.Notification_Date).ToList();
+            return Json(notifications);
         }
         public async System.Threading.Tasks.Task NotificationBroadcast()
         {

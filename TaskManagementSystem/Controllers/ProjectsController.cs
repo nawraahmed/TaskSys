@@ -39,9 +39,9 @@ namespace TaskManagementSystem.Controllers
         }
 
 
-        
 
-       
+
+
 
 
 
@@ -55,13 +55,30 @@ namespace TaskManagementSystem.Controllers
              .Include(p => p.CreatedByUsernameNavigation)
              .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
 
-
-            if (!string.IsNullOrEmpty(search))
+            foreach (var project in projects)
             {
-                taskAllocationDBContext = taskAllocationDBContext.Where(p => p.Name.Contains(search));
+                if (project.Status != "Completed" && project.Deadline < DateTime.Now.Date)
+                {
+                    project.Status = "Overdue";
+                }
 
+                // Load tasks into memory
+                var tasks = await _context.Tasks
+                    .Where(t => t.ProjectId == project.ProjectId)
+                    .ToListAsync();
+
+                if (tasks.Count > 0 && tasks.All(t => t.Status == "Completed"))
+                {
+                    project.Status = "Completed";
+                }
+
+
+                _context.Projects.Update(project);
             }
-            return View(await taskAllocationDBContext.ToListAsync());
+
+            await _context.SaveChangesAsync();
+
+            return View(projects);
         }
 
         public async Task<IActionResult> MyProjectsIndex(string search)
@@ -189,12 +206,12 @@ namespace TaskManagementSystem.Controllers
                         var status = "Unread";
                         var username = projectMember.Username;
                         await NotificationsController.SendNotification(message, type, status, username, _context);
-                        var notifications = new List<Notification> {
+                        var notification = new List<Notification> {
     new Notification { Message = message , Status = status}
 };
                         if (_hubcontext != null)
                         {
-                            await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
+                            await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notification);
                         }
 
                     }
@@ -380,12 +397,12 @@ namespace TaskManagementSystem.Controllers
                         var status = "Unread";
                         var username = projectManager.Username;
                         await NotificationsController.SendNotification(message, type, status, username, _context);
-                        var notifications = new List<Notification> {
+                        var notification = new List<Notification> {
     new Notification { Message = message , Status = status}
 };
                         if (_hubcontext != null)
                         {
-                            await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
+                            await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notification);
                         }
 
 
