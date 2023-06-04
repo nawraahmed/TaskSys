@@ -217,12 +217,12 @@ namespace TaskManagementSystem.Controllers
                 var status = "Unread";
                 var username = task.AssignedToUsername;
                 await NotificationsController.SendNotification(message, type, status, username, _context);
-                var notifications = new List<Notification> {
-    new Notification { Message = message , Status = status}
+                var notification = new List<Notification> {
+    new Notification { Message = message , Status = status, Type = type }
 };
                 if (_hubcontext != null)
                 {
-                    await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
+                    await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notification);
                 }
 
 
@@ -391,12 +391,12 @@ namespace TaskManagementSystem.Controllers
                             var status = "Unread";
                             var username = projectManager.Username;
                             await NotificationsController.SendNotification(message, type, status, username, _context);
-                            var notifications = new List<Notification> {
-    new Notification { Message = message , Status = status}
+                            var notification = new List<Notification> {
+  new Notification { Message = message , Status = status, Type = type }
 };
                             if (_hubcontext != null)
                             {
-                                await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notifications);
+                                await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notification);
                             }
 
 
