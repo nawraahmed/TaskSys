@@ -46,15 +46,13 @@ namespace TaskManagementSystem.Controllers
         }
 
 
-        public static void CreateLog(TaskAllocationDBContext context, string source, string type, string username, string message, object originalValue, object currentValue)
+        public static void CreateLog(TaskAllocationDBContext context, string source, string type, string username, string message, object entity, EntityState state)
         {
             var settings = new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             };
-            // Serialize the original and current values into JSON format
-            string originalJson = JsonConvert.SerializeObject(originalValue, settings);
-            string currentJson = JsonConvert.SerializeObject(currentValue, settings);
+            
 
             // Create a new log object
             var log = new Log
@@ -63,19 +61,62 @@ namespace TaskManagementSystem.Controllers
                 Type = type,
                 Username = username,
                 Date = DateTime.Now,
-                Message = message,
-                OriginalValue = originalJson,
-                CurrentValue = currentJson
+                Message = message
             };
 
-            // Add the log to the context and save changes
+            // Check if the entity is being added, modified or deleted
+            if (state == EntityState.Added || state == EntityState.Modified)
+            {
+                var entry = context.Entry(entity);
+                // Get the original values from the database
+                var databaseValues = entry.GetDatabaseValues();
+
+                // Convert current values to a readable format
+                var currentValues = entry.CurrentValues.Properties
+                    .ToDictionary(p => p.Name, p => entry.CurrentValues[p]?.ToString());
+
+                if (databaseValues != null)
+                {
+                    // Convert original values to a readable format
+                    var originalValues = databaseValues.Properties
+                        .ToDictionary(p => p.Name, p => databaseValues[p]?.ToString());
+
+                    // Serialize dictionaries to JSON strings
+                    log.OriginalValue = JsonConvert.SerializeObject(originalValues);
+                }
+                else
+                {
+                    // If there are no original values, set OriginalValue to null
+                    log.OriginalValue = null;
+                }
+
+                // Serialize current values to a JSON string
+                log.CurrentValue = JsonConvert.SerializeObject(currentValues);
+            }
+            else if (state == EntityState.Deleted)
+            {
+                // Get the original values of the entity before deleting it
+                var entry = context.Entry(entity);
+                var originalValues = entry.OriginalValues.Properties
+                    .ToDictionary(p => p.Name, p => entry.OriginalValues[p]?.ToString());
+
+                // Serialize original values to a JSON string
+                log.OriginalValue = JsonConvert.SerializeObject(originalValues);
+
+                // Set CurrentValue to null since the entity is being deleted
+                log.CurrentValue = null;
+            }
+
+            // Add the log to the context and save the changes
             context.Logs.Add(log);
             context.SaveChanges();
         }
 
 
-        
        
+
+
+
 
 
 

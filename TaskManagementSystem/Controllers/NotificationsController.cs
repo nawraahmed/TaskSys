@@ -50,7 +50,10 @@ namespace TaskManagementSystem.Controllers
                 return NotFound();
             }
             // Update the status to "Read"
-    notification.Status = "Read";
+            notification.Status = "Read";
+
+            //add log for nortification modification
+            LogsController.CreateLog(_context, "web", "Notifications/Details", User.Identity.Name, "A notification state modified to Read", notification, EntityState.Modified);
 
             // Save the changes to the database
             await _context.SaveChangesAsync();
@@ -202,6 +205,7 @@ namespace TaskManagementSystem.Controllers
             };
 
             context.Add(newNotification);
+            LogsController.CreateLog(context, "web", "Notifications/Create", username, "A notification sent:  "+ type, newNotification, EntityState.Added);
             await context.SaveChangesAsync();
         }
 

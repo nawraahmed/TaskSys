@@ -70,6 +70,12 @@ namespace TaskManagementSystem.Controllers
             if (ModelState.IsValid)
             {
                 _context.Add(taskComment);
+
+                //add a log for adding a comment
+                LogsController.CreateLog(_context, "web", "TaskComments/Create", User.Identity.Name, "A task comment was added", taskComment, EntityState.Added);
+
+
+
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), "Tasks",new {id = taskComment.TaskId});
             }

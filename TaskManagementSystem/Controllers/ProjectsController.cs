@@ -12,6 +12,8 @@ using TaskManagementSystem.Areas.Identity.Data;
 using TaskManagementSystem.Models;
 using TaskManagementSystem.ViewModels;
 using TaskManagementSystem.Controllers;
+using Microsoft.CodeAnalysis;
+using Microsoft.Build.Evaluation;
 
 namespace TaskManagementSystem.Controllers
 {
@@ -49,7 +51,7 @@ namespace TaskManagementSystem.Controllers
         public async Task<IActionResult> Index(string search)
         {
             //check if either the logged in user is a project member or the project is created by him!
-            IQueryable<Project> taskAllocationDBContext = _context.Projects
+            IQueryable<Models.Project> taskAllocationDBContext = _context.Projects
              .Include(p => p.CreatedByUsernameNavigation)
              .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
 
@@ -65,7 +67,7 @@ namespace TaskManagementSystem.Controllers
         public async Task<IActionResult> MyProjectsIndex(string search)
         {
             //display the projects that it is created by this user
-            IQueryable<Project> taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation).Where(x => x.CreatedByUsername == User.Identity.Name);
+            IQueryable<Models.Project> taskAllocationDBContext = _context.Projects.Include(p => p.CreatedByUsernameNavigation).Where(x => x.CreatedByUsername == User.Identity.Name);
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -123,7 +125,7 @@ namespace TaskManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProjectId,Name,Description,Deadline,Budget,CreatedByUsername,Status, SelectedMembers, Tasks, project_members_id")] Project project, List<String> selectedMembers)
+        public async Task<IActionResult> Create([Bind("ProjectId,Name,Description,Deadline,Budget,CreatedByUsername,Status, SelectedMembers, Tasks, project_members_id")] Models.Project project, List<String> selectedMembers)
         {
             //close any previously opened connection
             await _context.Database.CloseConnectionAsync();
@@ -149,6 +151,10 @@ namespace TaskManagementSystem.Controllers
 
                 // Insert one row for the new project in the projects table
                 _context.Projects.Add(project);
+
+                //add a log for peoject creation
+                LogsController.CreateLog(_context, "web", "Projects/Create", User.Identity.Name, "New Project Created", project, EntityState.Added);
+
                 await _context.SaveChangesAsync();
 
 
@@ -174,6 +180,9 @@ namespace TaskManagementSystem.Controllers
                         //adding a row for each member
                         _context.ProjectMembers.Add(projectMember);
 
+                        //add a log for peoject member addition
+                        LogsController.CreateLog(_context, "web", "Projects/Create", User.Identity.Name, "New Project member added to a project: " +projectMember.Username, projectMember, EntityState.Added);
+
                         //create notification
                         var message = $"You have been assigned to a new project : {project.Name} by manager {project.CreatedByUsername}.";
                         var type = "New Project Assignment";
@@ -190,12 +199,13 @@ namespace TaskManagementSystem.Controllers
 
                     }
 
+                    
                     await _context.SaveChangesAsync();
 
                     TempData["msg"] = "Project Added Successfully";
 
-                    //add a log for peoject creation
-                    LogsController.CreateLog(_context, "web", "Projects/Create", User.Identity.Name, "New Project Created", null, project);
+                    
+                    
 
 
                 }
@@ -341,9 +351,12 @@ namespace TaskManagementSystem.Controllers
 
                 //update the projects table
                 _context.Projects.Update(existingProject);
+                LogsController.CreateLog(_context, "web", "Projects/Edit", User.Identity.Name, "A Project has been edited", existingProject, EntityState.Modified);
+
                 await _context.SaveChangesAsync();
                 //add a log for peoject updating
-                LogsController.CreateLog(_context, "web", "Projects/Edit", User.Identity.Name, "A Project has been edited", existingProject.Name, existingProject);
+                
+                
 
                 TempData["msg"] = "Project Updated Successfully";
 
@@ -446,7 +459,7 @@ namespace TaskManagementSystem.Controllers
                     _context.TaskComments.Remove(comment);
 
                     //add a log for task comment removal
-                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task comment was deleted", comment, null);
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task comment was deleted", comment, EntityState.Deleted);
                 }
 
 
@@ -465,22 +478,30 @@ namespace TaskManagementSystem.Controllers
                     _context.Tasks.Remove(task);
 
                     //add a log for task removal
-                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task was deleted", task, null);
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A task was deleted", task, EntityState.Deleted);
                 }
 
                 // Iterate over the project tasks
                 foreach (var task in projectTasks)
                 {
-                    // Retrieve the task documents associated with each task
-                    var taskDocuments = await _context.Documents
-                        .Where(d => d.Tasks.Contains(task))
-                        .ToListAsync();
+
+                    // Retrieve the document IDs associated with each task
+                    var documentIds = _context.Tasks
+                        .Where(t => t.ProjectId == id && t.TaskId == task.TaskId)
+                        .Select(t => t.TaskDocument)
+                        .ToList();
+
+                    // Retrieve the task documents
+                    var taskDocuments = _context.Documents
+                        .Where(d => documentIds.Contains(d.DocumentId))
+                        .ToList();
 
                     // Remove the task documents
                     _context.Documents.RemoveRange(taskDocuments);
 
                     // Add a log for task document removal
-                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "Task documents were deleted", taskDocuments, null);
+                    //LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "Task documents were deleted", taskDocuments, EntityState.Deleted);
+
                 }
 
                 // Retrieve the project members associated with the project
@@ -493,14 +514,14 @@ namespace TaskManagementSystem.Controllers
                 {
                     _context.ProjectMembers.Remove(projectMember);
                     //add a log for peoject members removal
-                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A project member was removed", null, null);
+                    LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A project member was removed", projectMember, EntityState.Deleted);
                 }
 
                 //then remove the project itself
                 _context.Projects.Remove(project);
 
                 //add a log for peoject removal
-                LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A project was deleted", null, null);
+                LogsController.CreateLog(_context, "web", "Projects/Delete", User.Identity.Name, "A project was deleted", project, EntityState.Deleted);
             }
 
             await _context.SaveChangesAsync();
