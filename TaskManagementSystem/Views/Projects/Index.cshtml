@@ -15,14 +15,17 @@
 <h1>All Projects</h1>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New Project</a>
+    <a asp-action="Create" class="btn fn-primarybtn text-white" style="background-color: #3d5361;">Create New Project</a>
 </p>
 
 <form method="get" asp-controller="Projects" asp-action="Index" class="form-inline">
-    <div class="input-group">
+    <div class="input-group row">
+        <div class="col-lg-8">
         <input type="text" name="search" placeholder="Search projects..." class="form-control" value="@Context.Request.Query["search"].ToString()" />
-        <div class="input-group-append">
-            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+
+        <div class="input-group-append col-lg-4">
+            <button type="submit" class="btn fn-primarybtn text-white" style="background-color: #3d5361;">Search</button>
         </div>
     </div>
 </form>
@@ -37,6 +40,25 @@
     </li>
 </ul>
 
+@functions {
+    string GetStatusColor(string status)
+    {
+        switch (status)
+        {
+            case "Completed":
+                return "green";
+            case "In Progress":
+                return "orange";
+            case "Pending":
+                return "gray";
+            case "Overdue":
+                return "red";
+            default:
+                return "black";
+        }
+    }
+}
+
 <div class="tab-content">
     <div class="tab-pane fade show active" id="grid-content" role="tabpanel" aria-labelledby="grid-tab">
      @(
@@ -46,7 +68,14 @@
         {
             columns.Add(model => model.Name).Titled("Project Name");
             columns.Add(model => model.Deadline).Titled("Deadline");
-            columns.Add(model => model.Status).Titled("Status");
+            columns.Add(model => model.Status).Titled("Status")
+                .RenderedAs(model =>
+                {
+                    var statusColor = GetStatusColor(model.Status);
+                    return $"<div style=\"color: {statusColor};\">{model.Status}</div>";
+                })
+                .Encoded(false);
+
             columns.Add(model => model.CreatedByUsernameNavigation.Username).Titled("Project Manager");
 
             columns.Add().RenderedAs(model =>
@@ -120,7 +149,7 @@
             {
                 <div class="col-lg-4">
                     <div class="card @(GetCardClass(item.Status)) mb-3">
-                        <div class="card-header">Status: @Html.DisplayFor(modelItem => item.Status)</div>
+                        <div class="card-header" style="color: @GetStatusColor(item.Status);">Status: @Html.DisplayFor(modelItem => item.Status)</div>
                         <div class="card-body">
                             <h4 class="card-title">@Html.DisplayFor(modelItem => item.Name)</h4>
                             <p class="card-text">@Html.DisplayFor(modelItem => item.Description)</p>

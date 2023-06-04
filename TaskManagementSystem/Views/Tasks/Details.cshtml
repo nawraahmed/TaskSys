@@ -105,11 +105,16 @@
     </div>
 }
 
-<div>
-    <a asp-action="Create" asp-controller="TaskComments" asp-route-taskid="@Model?.TaskId" class="btn btn-primary">Add Comment</a>
-</div>
+<div class="row">
+    <div class="col-lg-2">
+    <a asp-action="Create" asp-controller="TaskComments" asp-route-taskid="@Model?.TaskId" class="btn fn-primarybtn text-white" style="background-color: #3d5361;">Add Comment</a>
+    </div>
 
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.TaskId" class="btn btn-primary">Edit</a>
+    <div class="col-lg-2">
+    <a asp-action="Edit" asp-route-id="@Model?.TaskId" class="btn fn-primarybtn text-white" style="background-color: #3d5361;">Edit</a>
+    </div>
+
+    <div class="col-lg-2">
     <a asp-action="Index" asp-route-projectId="@Model.ProjectId" class="btn btn-secondary">Back to List</a>
+    </div>
 </div>

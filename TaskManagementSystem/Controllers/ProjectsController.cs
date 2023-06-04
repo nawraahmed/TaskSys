@@ -100,6 +100,7 @@ namespace TaskManagementSystem.Controllers
         {
             if (id == null || _context.Projects == null)
             {
+                
                 return NotFound();
             }
 
@@ -211,6 +212,7 @@ namespace TaskManagementSystem.Controllers
 };
                         if (_hubcontext != null)
                         {
+                            
                             await _hubcontext.Clients.All.SendAsync("getUpdatedNotifications", notification);
                         }
 
@@ -252,6 +254,7 @@ namespace TaskManagementSystem.Controllers
         {
             if (id == null || _context.Projects == null)
             {
+                LogsController.CreateLogExceptions(_context, User.Identity.Name, "Projects/Edit", "Project was not found");
                 return NotFound();
             }
 
@@ -290,6 +293,7 @@ namespace TaskManagementSystem.Controllers
             //if the id is not found
             if (id != editProject.Project.ProjectId)
             {
+                LogsController.CreateLogExceptions(_context, User.Identity.Name, "Projects/Edit", "Project was not found");
                 return NotFound();
             }
 
@@ -616,7 +620,10 @@ namespace TaskManagementSystem.Controllers
             }
             catch
             {
+                
+                LogsController.CreateLogExceptions(_context, User.Identity.Name, "Projects/Dashboard", "Bad Request");
                 return BadRequest();
+                
             }
         }
 

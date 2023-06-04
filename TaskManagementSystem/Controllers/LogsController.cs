@@ -113,7 +113,34 @@ namespace TaskManagementSystem.Controllers
         }
 
 
-       
+        public static void CreateLogExceptions(TaskAllocationDBContext context, string username, string source, string message)
+        {
+            var settings = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+
+            // Create a new log object
+            var log = new Log
+            {
+                Source = $"{source}",
+                Username = username,
+                Date = DateTime.Now,
+                Message = message
+                
+            };
+
+
+
+            
+            // Add the log to the context and save the changes
+            context.Logs.Add(log);
+            context.SaveChanges();
+        }
+
+
+
+
         private bool LogExists(int id)
         {
           return (_context.Logs?.Any(e => e.LogId == id)).GetValueOrDefault();

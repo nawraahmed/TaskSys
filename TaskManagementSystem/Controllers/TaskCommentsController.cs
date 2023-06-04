@@ -132,8 +132,10 @@ namespace TaskManagementSystem.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
+                    
                     if (!TaskCommentExists(taskComment.CommentId))
                     {
+                        LogsController.CreateLogExceptions(_context, User.Identity.Name, "TaskComments/Edit", "task comment not found");
                         return NotFound();
                     }
                     else
@@ -175,6 +177,7 @@ namespace TaskManagementSystem.Controllers
         {
             if (_context.TaskComments == null)
             {
+                LogsController.CreateLogExceptions(_context, User.Identity.Name, "TaskComments/Delete", "task comment is null");
                 return Problem("Entity set 'TaskAllocationDBContext.TaskComments'  is null.");
             }
             var taskComment = await _context.TaskComments.FindAsync(id);
