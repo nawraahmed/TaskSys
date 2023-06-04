@@ -137,7 +137,7 @@ namespace TaskManagementSystem.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
-
+                    await _userManager.AddToRoleAsync(user,"User");
                     // Insert user data into the custom "Users" table
                     var customUser = new User { Username = Input.Email};
                     _context.Users.Add(customUser);

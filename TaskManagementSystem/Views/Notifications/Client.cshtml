@@ -1,4 +1,4 @@
-﻿@*@{
+﻿@{
     ViewData["Title"] = "Client";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -76,7 +76,7 @@
 
             $.each(notifications, function (index, notification) {
                 var tr = $('<tr/>');
-                tr.append(`<td>${(index + 1)}</td>`);
+               // tr.append(`<td>${(index + 1)}</td>`);
                 tr.append(`<td>${notification.message}</td>`);
                 tr.append(`<td>${notification.status}</td>`); // Add the date/time field
                 tbody.append(tr);
@@ -88,99 +88,4 @@
     </script>
 
 
-}*@
-
-
-@{
-    ViewData["Title"] = "Client";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
-
-<h1>Client</h1>
-
-<div class="row" id="notificationCards"></div>
-
-@section Scripts {
-    <script src="~/js/signalr/dist/browser/signalr.js"></script>
-    <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
-
-    <script>
-        "use strict";
-
-        // Define connection to hub
-        var connection = new signalR.HubConnectionBuilder().withUrl("/NotificationsHub").build();
-
-        // Start the hub connection
-        $(function () {
-            connection.start().then(function () {
-                console.log('Connected to NotificationsHub');
-                invokeNotifications(); // Load existing list of notifications
-            }).catch(function (err) {
-                return console.error(err.toString());
-            });
-        });
-
-        // Initially, we need to show the list of all notifications
-        // So we will use our action method that returns JSON
-        function invokeNotifications() {
-            var url = "../Notifications/GetAll";
-            $.get(url, function (data) {
-                bindNotificationsToCards(data);
-            });
-        };
-
-        // The server will call this with updated notification list on every database change
-        connection.on("getUpdatedNotifications", function (notification) {
-            appendNotificationToCards(notification);
-        });
-
-        function appendNotificationToCards(notification) {
-            var notificationCards = $('#notificationCards');
-            var cardClass = notification.status === "Read" ? "text-success" : "text-warning";
-            var card = $('<div class="col-md-4 mb-4">');
-            var cardInner = $('<div class="card mb-3">');
-            var cardHeader = $('<div class="card-header">');
-            var cardStatus = $('<span class="font-weight-bold ' + cardClass + '">').text('Status: ' + notification.status);
-            var cardBody = $('<div class="card-body">');
-            var cardTitle = $('<h4 class="card-title">').text(notification.type);
-            var cardDate = $('<p class="card-text">').text('Notification Date: ' + formatDate(notification.notification_Date));
-            var cardButton = $('<a class="btn btn-primary">').text('Read Details').attr('href', '../Notifications/Details/' + notification.notificationId);
-
-            cardHeader.append(cardStatus);
-            cardBody.append(cardTitle, cardDate, cardButton);
-            cardInner.append(cardHeader, cardBody);
-            card.append(cardInner);
-            notificationCards.prepend(card); // Prepend the new notification card at the beginning
-        }
-
-
-        function bindNotificationsToCards(notifications) {
-            var notificationCards = $('#notificationCards');
-            notificationCards.empty();
-
-            notifications.forEach(function (notification) {
-                var cardClass = notification.status === "Read" ? "text-success" : "text-warning";
-                var card = $('<div class="col-md-4 mb-4">');
-                var cardInner = $('<div class="card mb-3">');
-                var cardHeader = $('<div class="card-header">');
-                var cardStatus = $('<span class="font-weight-bold ' + cardClass + '">').text('Status: ' + notification.status);
-                var cardBody = $('<div class="card-body">');
-                var cardTitle = $('<h4 class="card-title">').text(notification.type);
-                var cardDate = $('<p class="card-text">').text('Notification Date: ' + formatDate(notification.notification_Date));
-                var cardButton = $('<a class="btn btn-primary">').text('Read Details').attr('href', '../Notifications/Details/' + notification.notificationId);
-
-                cardHeader.append(cardStatus);
-                cardBody.append(cardTitle, cardDate, cardButton);
-                cardInner.append(cardHeader, cardBody);
-                card.append(cardInner);
-                notificationCards.append(card);
-            });
-        }
-
-        function formatDate(date) {
-            // Convert date to a readable format
-            var options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
-            return new Date(date).toLocaleDateString(undefined, options);
-        }
-    </script>
 }
