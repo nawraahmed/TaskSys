@@ -11,7 +11,17 @@
 
         columns.Add().RenderedAs(model => Html.ActionLink("Edit", "Edit", new { id = model.TaskId })).Filterable(false);
         columns.Add().RenderedAs(model => Html.ActionLink("Details", "Details", new { id = model.TaskId })).Filterable(false);
-        columns.Add().RenderedAs(model => Html.ActionLink("Delete", "Delete", new { id = model.TaskId })).Filterable(false);
+        columns.Add().RenderedAs(model =>
+               {
+                   if (User.Identity.Name == model.Project.CreatedByUsername)
+                   {
+                       return Html.ActionLink("Delete", "Delete", new { id = model.ProjectId });
+                   }
+                   else
+                   {
+                       return null;
+                   }
+               }).Filterable(false);
     })
     .Using(GridFilterMode.Header)
     .Empty("No data found")
