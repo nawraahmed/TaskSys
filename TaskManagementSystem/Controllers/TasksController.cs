@@ -213,15 +213,31 @@ namespace TaskManagementSystem.Controllers
 
                     //add the document to the context
                     _context.Documents.Add(doc);
+
+                    //add a log for document uploading
+                    LogsController.CreateLog(_context, "web", "Tasks/Create", User.Identity.Name, "New Document was uploaded", doc, EntityState.Added);
+
                     await _context.SaveChangesAsync();
 
+                    //retreive the document id from the db
+                    int documentId = _context.Documents
+                    .OrderByDescending(d => d.DocumentId)
+                    .Select(d => d.DocumentId)
+                    .FirstOrDefault();
+
+
                     // Assign the document ID to the task
-                    task.TaskDocument = doc.DocumentId;
+                    task.TaskDocument = documentId;
  
 
                 }
                 // Add the task to the context and save changes
                 _context.Add(task);
+
+                //add a log for task creation
+                LogsController.CreateLog(_context, "web", "Tasks/Create", User.Identity.Name, "New task was created", task, EntityState.Added);
+
+
                 await _context.SaveChangesAsync();
 
                 TempData["msg"] = "New Task Assigned successfully!";
@@ -332,6 +348,10 @@ namespace TaskManagementSystem.Controllers
                             // Remove the document from the documents table first
                             // Then remove the document from the tasks table as well
                             _context.Documents.Remove(task.TaskDocumentNavigation);
+
+                            //add a log for document deletion
+                            LogsController.CreateLog(_context, "web", "Tasks/Edit", User.Identity.Name, "A document was deleted", task.TaskDocumentNavigation, EntityState.Deleted);
+
                             await _context.SaveChangesAsync();
                         }
 
@@ -363,6 +383,10 @@ namespace TaskManagementSystem.Controllers
 
                         //add the document to the context
                         _context.Documents.Add(document);
+
+                        //add a log for document uploading
+                        LogsController.CreateLog(_context, "web", "Tasks/Edit", User.Identity.Name, "New document was uploaded", document, EntityState.Added);
+
                         await _context.SaveChangesAsync();
 
                         // Assign the document ID to the task
@@ -382,6 +406,11 @@ namespace TaskManagementSystem.Controllers
 
                     // Update the task in the context
                     _context.Update(task);
+
+                    //add a log for task updating
+                    LogsController.CreateLog(_context, "web", "Tasks/Edit", User.Identity.Name, "A task was updated", task, EntityState.Modified);
+
+
                     await _context.SaveChangesAsync();
 
                     TempData["msg"] = "Task Updated successfully.";
@@ -479,8 +508,13 @@ namespace TaskManagementSystem.Controllers
             var associatedRecords = await _context.TaskComments.Where(r => r.TaskId == id).ToListAsync();
             _context.TaskComments.RemoveRange(associatedRecords);
 
+            
             // Delete the task from the database
             _context.Tasks.Remove(task);
+
+            //add a log for task removal
+            LogsController.CreateLog(_context, "web", "Tasks/Delete", User.Identity.Name, "A task was removed", task, EntityState.Deleted);
+
             await _context.SaveChangesAsync();
 
             TempData["msg"] = "Task Deleted successfully!";
@@ -553,6 +587,8 @@ namespace TaskManagementSystem.Controllers
 
             // Delete the document from the database
             _context.Documents.Remove(document);
+
+           
             await _context.SaveChangesAsync();
 
             // Redirect to the Edit action of TasksController with the ID of the first associated task
