@@ -50,10 +50,10 @@ namespace TaskManagementSystem.Controllers
         // GET: Projects
         public async Task<IActionResult> Index(string search)
         {
-            //check if either the logged in user is a project member or the project is created by him!
-            IQueryable<Models.Project> taskAllocationDBContext = _context.Projects
-             .Include(p => p.CreatedByUsernameNavigation)
-             .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name);
+            List<Models.Project> projects = await _context.Projects
+                .Include(p => p.CreatedByUsernameNavigation)
+                .Where(p => p.ProjectMembers.Any(m => m.Username == User.Identity.Name) || p.CreatedByUsername == User.Identity.Name)
+                .ToListAsync();
 
             foreach (var project in projects)
             {
@@ -71,12 +71,12 @@ namespace TaskManagementSystem.Controllers
                 {
                     project.Status = "Completed";
                 }
-
-
-                _context.Projects.Update(project);
             }
 
-            await _context.SaveChangesAsync();
+            if (!string.IsNullOrEmpty(search))
+            {
+                projects = projects.Where(p => p.Name.Contains(search)).ToList();
+            }
 
             return View(projects);
         }
