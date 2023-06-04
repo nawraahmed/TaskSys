@@ -118,10 +118,7 @@ namespace TaskManagementSystem.Controllers
         // GET: Tasks/Create
         public IActionResult Create(int projectId)
         {
-            //ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username");
-            //ViewData["ProjectId"] = projectId; //new SelectList(_context.Projects, "ProjectId", "ProjectId");
-            //ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId");
-            //return View();
+          
             var tasksViewModel = new TasksVM
             {
                 Task = new(),
@@ -161,6 +158,26 @@ namespace TaskManagementSystem.Controllers
 
             // Set the task's AssignedToUsername to the selected project member's username
             task.AssignedToUsername = tasksVM.SelectedProjectMemberUsername;
+
+            // Custom validations
+            if (task.Deadline <= DateTime.Today)
+            {
+                ModelState.AddModelError("Task.DueDate", "Due date must be in the future.");
+            }
+
+            if (task.Name.Length < 3)
+            {
+                ModelState.AddModelError("Task.Name", "Name must have at least 3 characters.");
+            }
+
+            if (task.Description.Length < 3)
+            {
+                ModelState.AddModelError("Task.Description", "Description must have at least 3 characters.");
+            }
+            if (task.Description.Length > 500)
+            {
+                ModelState.AddModelError("Task.Description", "Description cannot exceed 500 characters.");
+            }
 
 
             //clear the modelstate and validate it
@@ -232,10 +249,6 @@ namespace TaskManagementSystem.Controllers
             // Retrieve the project members for the selected project
             tasksVM.ProjectMembers = _context.ProjectMembers.Where(p => p.ProjectId == projectId);
 
-
-            //ViewData["AssignedToUsername"] = new SelectList(_context.Users, "Username", "Username", task.AssignedToUsername);
-            //ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectId", task.ProjectId);
-            //ViewData["TaskDocument"] = new SelectList(_context.Documents, "DocumentId", "DocumentId", task.TaskDocument);
 
             // Return the view with the updated view model
             return View(tasksVM);

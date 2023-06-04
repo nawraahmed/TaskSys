@@ -65,6 +65,13 @@ namespace TaskManagementSystem.Controllers
             taskComment.Task = _context.Tasks.Include(x=>x.AssignedToUsernameNavigation).FirstOrDefault(x => x.TaskId == taskid);
             taskComment.Task.Project = _context.Projects.Include(p=>p.CreatedByUsernameNavigation).FirstOrDefault(x => x.ProjectId == taskComment.Task.ProjectId);
             taskComment.UsernameNavigation = (User)_context.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
+
+            if (taskComment.Comment.Length < 5)
+            {
+                ModelState.AddModelError("Comment", "Comment must have at least 5 characters.");
+            }
+
+
             ModelState.Clear();
             TryValidateModel(taskComment);
             if (ModelState.IsValid)

@@ -1,9 +1,9 @@
 ﻿@model TaskManagementSystem.ViewModels.TasksVM
+
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 
 @{
     if (TempData["msg"] != null)
@@ -13,6 +13,7 @@
         </div>
     }
 }
+
 <ul class="nav nav-tabs" role="tablist">
     <li class="nav-item" role="presentation">
         <a class="nav-link @(Model.Tab == "alltasks" ? "active" : "")" href="@Url.Action("Index", new { projectId = Model.Project.ProjectId, tab = "alltasks" })" role="tab">All Tasks</a>
@@ -22,220 +23,41 @@
     </li>
 </ul>
 
-
-    <div id="myTabContent" class="tab-content">
-        <div class="tab-pane fade active show" id="mytasks" role="tabpanel">
-            <h1>Tasks</h1>
-
-
-            <h5>Tasks for the Project: @Model.Project.Name</h5>
-           
-
-  <div class="col-8">
-  <form method="get" action="@Url.Action("Index")" class="form-inline">
-    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-    <input type="hidden" name="tab" value="@Model.Tab" />
-
-        <div class="input-group row">
+<div id="myTabContent" class="tab-content">
+    <div class="tab-pane fade active show" id="mytasks" role="tabpanel">
+        <h1>Tasks</h1>
+        <h5>Tasks for the Project: @Model.Project.Name</h5>
+        <div class="col-8">
+            <form method="get" action="@Url.Action("Index")" class="form-inline">
+                <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                <input type="hidden" name="tab" value="@Model.Tab" />
+                <div class="input-group row">
                     <div class="col-lg-8">
-        <input type="text" name="search" placeholder="Search tasks..." class="form-control" value="@Context.Request.Query["search"]" />
+                        <input type="text" name="search" placeholder="Search tasks..." class="form-control" value="@Context.Request.Query["search"]" />
                     </div>
-
                     <div class="input-group-append col-lg-4">
-                        <button type="submit" class="btn fn-primarybtn text-white" style="background-color: #3d5361;">Search</button> <br />
-                     
+                        <button type="submit" class="btn fn-primarybtn text-white" style="background-color: #3d5361;">Search</button>
+                    </div>
+                </div>
+            </form>
         </div>
-    </div>
-</form>
 
-
-
-            </div>
         @if (Model.Project.CreatedByUsername == User.Identity.Name)
         {
             <br />
             <p>
-
                 <a asp-action="Create" asp-route-projectId="@Model.Project.ProjectId" class="btn fn-primarybtn text-white" style="background-color: #3d5361;">Create New Task</a>
-            </p> 
-         }
-
-         <br />
-        @(
-            Html
-            .Grid(Model.Project.Tasks)
-            .Build(columns =>
-            {
-                columns.Add(model => model.Name).Titled("Task Name");
-                columns.Add(model => model.Deadline).Titled("Deadline");
-                columns.Add(model => model.Status).Titled("Status");
-                columns.Add(model => model.AssignedToUsernameNavigation.Username).Titled("Assigned To:");
-
-                columns.Add().RenderedAs(model => Html.ActionLink("Edit", "Edit", new
-                {
-                    id =
-                model.TaskId
-                })).Filterable(false);
-                columns.Add().RenderedAs(model => Html.ActionLink("Details", "Details", new
-                {
-                    id =
-                model.TaskId
-                })).Filterable(false);
-                columns.Add().RenderedAs(model => Html.ActionLink("Delete", "Delete", new
-                {
-                    id =
-                model.TaskId
-                })).Filterable(false);
-              
-            })
-            .Using(GridFilterMode.Header)
-            .Empty("No data found")
-            .Filterable()
-            .Sortable()
-            .Css("table table-responsive table-striped table-bordered")
-            .Pageable(pager =>
-            {
-                pager.RowsPerPage = 10;
-            })
-            )
-        @section Scripts {
-            <script>
-                document.querySelectorAll(".mvc-grid").forEach(element => new MvcGrid(element));
-            </script>
+            </p>
         }
 
-        </div>
-        <div class="tab-pane fade" id="alltasks" role="tabpanel">
-            <h1>Tasks</h1>
+        <br />
+        @Html.Partial("_GridPartial", Model.Project.Tasks)
 
+    </div>
+</div>
 
-<h5>These are the Tasks for the Project: @Model.Project.ProjectId</h5>
-<h5>Project Deadline: @Model.Project.Deadline</h5>
-          <div class="col-8">
-            <form method="get" action="@Url.Action("Index")" class="form-inline">
-                <div class="form-group">
-                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                    <input type="hidden" name="tab" value="@Model.Tab" />
-                    <input type="text" name="search" placeholder="Search tasks..." class="form-control mr-2" value="@Context.Request.Query["search"]" />
-                    <button type="submit" class="btn btn-primary">Search</button>
-                  @*  <a asp-controller="Tasks" asp-action="Index" class="btn btn-outline-danger">
-                        Clear
-                    </a>*@
-                </div>
-            </form>
-
-        </div>
-        @if (Model.Project.CreatedByUsername==User.Identity.Name){
-<p>
-     
-    <a asp-action="Create" asp-route-projectId="@Model.Project.ProjectId" class="btn btn-primary">Create New Task</a>
-</p>
-        }
-@*<table class="table">
-    <thead>
-        <tr>
-
-            <th>
-                @Html.DisplayNameFor(model => model.Task.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Task.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Task.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Task.Deadline)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Task.AssignedToUsernameNavigation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Task.Project)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Task.TaskDocumentNavigation)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Project.Tasks)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Status)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Deadline)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.AssignedToUsernameNavigation.Username)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Project.ProjectId)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.TaskDocumentNavigation.DocumentId)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.TaskId">Edit</a> |
-                            <a asp-action="Details" asp-route-id="@item.TaskId">Details</a> |
-                @if (Model.Project.CreatedByUsername == User.Identity.Name)
-{
-    <a asp-action="Delete" asp-route-id="@item.TaskId">Delete</a>
+@section Scripts {
+    <script>
+        document.querySelectorAll(".mvc-grid").forEach(element => new MvcGrid(element));
+    </script>
 }
-
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-*@
-
-        @(
-            Html
-            .Grid(Model.Project.Tasks)
-            .Build(columns =>
-            {
-                columns.Add(model => model.Name).Titled("Task Name");
-                columns.Add(model => model.Deadline).Titled("Deadline");
-                columns.Add(model => model.Status).Titled("Status");
-                columns.Add(model => model.AssignedToUsernameNavigation.Username).Titled("Assigned To:");
-
-                columns.Add().RenderedAs(model => Html.ActionLink("Edit", "Edit", new
-                {
-                    id =
-                model.TaskId
-                })).Filterable(false);
-                columns.Add().RenderedAs(model => Html.ActionLink("Details", "Details", new
-                {
-                    id =
-                model.TaskId
-                })).Filterable(false);
-                columns.Add().RenderedAs(model => Html.ActionLink("Delete", "Delete", new
-                {
-                    id =
-                model.TaskId
-                })).Filterable(false);
-
-            })
-            .Using(GridFilterMode.Header)
-            .Empty("No data found")
-            .Filterable()
-            .Sortable()
-            .Css("table table-responsive table-striped table-bordered")
-            .Pageable(pager =>
-            {
-                pager.RowsPerPage = 10;
-            })
-            )
-     
-        </div>
-    
